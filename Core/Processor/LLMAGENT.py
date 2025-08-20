@@ -1,4 +1,3 @@
-from Core.inputAdapters.InputEvent import Event
 from Core.Processor.ToolSet import available_functions, tools
 from dotenv import load_dotenv
 import os
@@ -63,9 +62,6 @@ def chat(user_message: str) -> str:
         # If no tool was called, return the direct response
         return choice.content
 
-def llmagent_process(event: Event):
+def llmagent_process(message: str):
     """Process an input event using the LLM agent"""
-    if hasattr(event, 'message'):
-        return chat(event.message)
-    else:
-        return "Event has no message to process"
+    return chat(message)

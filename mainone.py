@@ -1,17 +1,17 @@
-from Core.inputAdapters.InputEvent import Event
-from Core.Processor.LLMAGENT import llmagent_process
+from mcp.server.fastmcp import FastMCP
+from Core.Processor.ToolSet import register_tools
+import sys
+
+# Expose a top-level FastMCP instance so `mcp dev mainone.py` can import it
+mcp = FastMCP("Relay-Tools")
+register_tools(mcp)
+
 
 def main():
-    """Main entry point for the Relay application"""
-    # Create a test event
-    event = Event()
-    event.message = "What's the weather in Lagos, Nigeria?"
-    
-    # Process the event with the LLM agent
-    response = llmagent_process(event)
-    
-    # Print the response
-    print(f"Response: {response}")
+    """Run the MCP development server and expose tools from ToolSet."""
+    # Start server (stdio transport by default)
+    print("Running Relay MCP Server (stdio)...", file=sys.stderr)
+    mcp.run()
 
 if __name__ == "__main__":
     main()

@@ -3,3 +3,7 @@
 .env
 features.readme
 
+# Python cache files
+__pycache__/
+*.py[cod]
+
