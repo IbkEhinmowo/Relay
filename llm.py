@@ -1,23 +1,64 @@
-from Core.inputAdapters.InputEvent import Event
-from Core.Processor.ToolSet import available_functions, tools
+from mcp.server.fastmcp import FastMCP
+from openai import OpenAI
 from dotenv import load_dotenv
 import os
 import json
 from cerebras.cloud.sdk import Cerebras
 
-# Load environment variables
+# Simple AI API that uses MCP tools directly
 load_dotenv()
 
-# Initialize Cerebras client
+# Create MCP server with AI integration
+mcp = FastMCP("AI-Weather-API")
+
 client = Cerebras(
   api_key=os.environ.get("CEREBRAS_API_KEY"),
 )
 
+# Register your weather tool
+@mcp.tool()
+def get_weather(query: str) -> dict:
+    """Get current weather for a location"""
+    import requests
+    access_key = os.getenv("WEATHERSTACK_API_KEY")
+    url = f"http://api.weatherstack.com/current?access_key={access_key}&query={query}"
+    response = requests.get(url)
+    return response.json()
+
+# Dictionary of available functions mapped by name
+available_functions = {
+    "get_weather": get_weather,
+    # Add new tools here
+}
+
+# Define tool schema according to Cerebras requirements
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "strict": True,
+            "description": "Get current weather for a location",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "The location to get weather for (city name, zip code, etc)"
+                    }
+                },
+                "required": ["query"]
+            }
+        }
+    }
+]
+
+# Simple chat function that uses the tools
 def chat(user_message: str) -> str:
-    """Chat with AI that can use tools"""
+    """Chat with AI that can use weather tools"""
     
     messages = [
-        {"role": "system", "content": "You are a helpful assistant with access to various tools."},
+        {"role": "system", "content": "You are a helpful assistant with access to weather data."},
         {"role": "user", "content": user_message}
     ]
     
@@ -58,14 +99,11 @@ def chat(user_message: str) -> str:
             
             return final_response.choices[0].message.content
         else:
-            return f"Unknown tool requested: {function_name}"
+            return "Unknown tool requested"
     else:
         # If no tool was called, return the direct response
         return choice.content
 
-def llmagent_process(event: Event):
-    """Process an input event using the LLM agent"""
-    if hasattr(event, 'message'):
-        return chat(event.message)
-    else:
-        return "Event has no message to process"
+if __name__ == "__main__":
+    # Simple test
+    print(chat("What's the weather in lagos nigeria"))
