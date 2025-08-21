@@ -24,7 +24,7 @@ def chat(user_message: str) -> str:
         model="llama-4-scout-17b-16e-instruct",
         messages=messages,
         tools=tools,
-        parallel_tool_calls=False
+        parallel_tool_calls=True
     )
     
     choice = response.choices[0].message
