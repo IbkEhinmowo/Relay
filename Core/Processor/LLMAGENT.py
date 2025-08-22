@@ -16,51 +16,44 @@ def chat(user_message: str) -> str:
     """Chat with AI that can use tools"""
     
     messages = [
-        {"role": "system", "content": "You are a helpful assistant with access to various tools."},
+        {
+            "role": "system",
+            "content": (
+                "You are a helpful assistant with access to tools. "
+                "When the user asks for something that matches a tool description, "
+                "you MUST call that tool using the tool calling mechanism, not by responding in text, otherwise state why not"
+            )
+        },
         {"role": "user", "content": user_message}
     ]
-    
-    response = client.chat.completions.create(
-        model="llama-4-scout-17b-16e-instruct",
-        messages=messages,
-        tools=tools,
-        parallel_tool_calls=True
-    )
-    
-    choice = response.choices[0].message
-    
-    # Check if the model wants to use a tool
-    if choice.tool_calls:
-        function_call = choice.tool_calls[0].function
-        function_name = function_call.name
-        
-        if function_name in available_functions:
-            # Parse the arguments and execute the tool
-            arguments = json.loads(function_call.arguments)
+    print("DEBUG: tools sent to model:", json.dumps(tools, indent=2))
+    while True:
+        response = client.chat.completions.create(
+            model="qwen-3-32b",
+            messages=messages,
+            tools=tools,
+            parallel_tool_calls=True
+        )
+        choice = response.choices[0].message
+        print("DEBUG: Model response:", choice)
+        # If the assistant didn’t ask for a tool, we’re done
+        if not choice.tool_calls:
+            return choice.content
+        # Save the assistant turn exactly as returned
+        messages.append(choice.model_dump())
+        # Run the requested tool(s)
+        for call in choice.tool_calls:
+            function_name = call.function.name
+            if function_name not in available_functions:
+                return f"Unknown tool requested: {function_name}"
+            arguments = json.loads(call.function.arguments)
             result = available_functions[function_name](**arguments)
-            
-            # Add the assistant's response with the tool call
-            messages.append(choice.model_dump())
-            
-            # Add the tool response back to messages
+            # Feed the tool result back
             messages.append({
                 "role": "tool",
+                "tool_call_id": call.id,
                 "content": json.dumps(result),
-                "tool_call_id": choice.tool_calls[0].id
             })
-            
-            # Get the final response from the model
-            final_response = client.chat.completions.create(
-                model="llama-4-scout-17b-16e-instruct",
-                messages=messages,
-            )
-            
-            return final_response.choices[0].message.content
-        else:
-            return f"Unknown tool requested: {function_name}"
-    else:
-        # If no tool was called, return the direct response
-        return choice.content
 
 def llmagent_process(message: str):
     """Process an input event using the LLM agent"""

@@ -1,11 +1,15 @@
-
 import os
 import json
 import requests
 from typing import Dict, Any
 from dotenv import load_dotenv
+from mcp.server.fastmcp import FastMCP
+from Core.Processor.Notion import NotionIntegration
 
 
+# Initialize MCP server
+mcp = FastMCP("Relay-Tools")
+notion = NotionIntegration()
 
 # WEATHER TOOLSET
 
@@ -41,14 +45,7 @@ def get_weather(query: str) -> Dict[str, Any]:
 # def Create_ticket(subject: str, description: str, priority: str):
 #     return "Ticket Created"  # Replace with actual ticket creation logic
 
-# Dictionary of available functions mapped by name
-available_functions = {
-    "get_weather": get_weather,
-    # "DataBase_query": DataBase_query,
-    # "Scrape_Description_Data": Scrape_Description_Data,
-    # "Create_ticket": Create_ticket,
-    # Add new tools here
-}
+
 
 # Define tool schema according to Cerebras requirements
 tools = [
@@ -56,7 +53,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "get_weather",
-            "strict": True,
+            "strict": False,
             "description": "Get current weather for a location",
             "parameters": {
                 "type": "object",
@@ -69,19 +66,57 @@ tools = [
                 "required": ["query"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_notion_page",
+            "strict": False,
+            "description": "Update the content of a Notion page with the provided string",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "written_string": {
+                        "type": "string",
+                        "description": "The new data for the Notion page"
+                    }
+                },
+                "required": ["written_string"]
+            }
+        }
     }
     # Additional tools can be added here
 ]
 
+# Register MCP tools
+@mcp.tool()
+def get_weather_tool(query: str) -> Dict[str, Any]:
+    """Get current weather for a location"""
+    return get_weather(query)
 
-def register_tools(mcp) -> None:
+@mcp.tool()
+def update_notion_page(written_string: str) -> str:
+    """Update a Notion page with new data."""
+    return notion.update_page(written_string)
+
+def register_tools(mcp_instance) -> None:
     """Register available tools with a FastMCP instance.
 
     This keeps MCP specifics out of import-time side effects and allows reuse
-    of the same functions by both LLM function-calling and MCP.
+    of the same functions by both LLM function-calling and MCP Server for Testing.
     """
-
-    @mcp.tool()
-    def get_weather_tool(query: str) -> Dict[str, Any]:
-        """Get current weather for a location"""
-        return get_weather(query)
+    # This function is now deprecated since tools are registered directly above
+    
+    
+    
+    
+    
+# Dictionary of available functions mapped by name
+available_functions = {
+    "get_weather": get_weather,
+    "update_notion_page": update_notion_page
+    # "DataBase_query": DataBase_query,
+    # "Scrape_Description_Data": Scrape_Description_Data,
+    # "Create_ticket": Create_ticket,
+    # Add new tools here
+}

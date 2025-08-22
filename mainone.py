@@ -1,17 +1,10 @@
-from mcp.server.fastmcp import FastMCP
-from Core.Processor.ToolSet import register_tools
+from Core.Processor.ToolSet import mcp
+from Core.Processor.LLMAGENT import llmagent_process
 import sys
 
-# Expose a top-level FastMCP instance so `mcp dev mainone.py` can import it
-mcp = FastMCP("Relay-Tools")
-register_tools(mcp)
-
-
 def main():
-    """Run the MCP development server and expose tools from ToolSet."""
-    # Start server (stdio transport by default)
-    print("Running Relay MCP Server (stdio)...", file=sys.stderr)
-    mcp.run()
+    result = llmagent_process("update notion page with the words i love you 999 and get the weather in new york")
+    print(result)
 
 if __name__ == "__main__":
     main()
