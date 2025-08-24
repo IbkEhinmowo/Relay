@@ -47,11 +47,10 @@ async def on_ready():
 
 async def send_discord_message(message: str):
     channel = bot.get_channel(reportChannelID)
-    # print(f"DEBUG: Sending message to channel ID {reportChannelID}: {message}")
     if channel:
-        await channel.send(message)
+        async with channel.typing():
+            await channel.send(message)
     else:
-        # print(f"Channel with ID {reportChannelID} not found.")
         pass
 
 async def redis_message_worker():
@@ -83,6 +82,7 @@ async def redis_message_worker():
 
 @bot.command()
 async def hello(ctx):
+    await ctx.trigger_typing()
     await ctx.send("Hiii! I'm Natasha")
 
 
@@ -91,6 +91,7 @@ async def hello(ctx):
 
 @bot.command()
 async def ask(ctx):
+    await ctx.trigger_typing()
     await ctx.send("What is your question?")
 
     def check(m):
@@ -98,10 +99,12 @@ async def ask(ctx):
 
     try:
         msg = await bot.wait_for("message", check=check, timeout=30)
+        await ctx.trigger_typing()
         # Process the question using llmagent_process
         result = llmagent_process(msg.content)
         await ctx.send(result)
     except asyncio.TimeoutError:
+        await ctx.trigger_typing()
         await ctx.send("You took too long to respond!")
 
 if __name__ == "__main__":
