@@ -5,7 +5,7 @@ import asyncio
 from typing import Dict, Any
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
-from Core.Processor.Notion import NotionIntegration
+from Core.Integrations.Notion import NotionIntegration
 from Core.Integrations.discord_bot import send_discord_message
 
 
