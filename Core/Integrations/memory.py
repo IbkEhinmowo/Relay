@@ -13,5 +13,9 @@ class Memory:
         return [mem.decode() for mem in self.r.lrange(self.key, 0, -1)]
 
     def delete(self, index):
-        self.r.lset(self.key, index, "__DELETED__")
+        # Accept 1-based index from user, convert to 0-based for Redis
+        redis_index = index - 1
+        if not self.r.exists(self.key):
+            return
+        self.r.lset(self.key, redis_index, "__DELETED__")
         self.r.lrem(self.key, 1, "__DELETED__")

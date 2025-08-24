@@ -23,16 +23,16 @@ def chat(user_message: str) -> str:
                 "When a user request matches a tool's function, you MUST use the tool calling mechanism, but do NOT mention that you are using a tool or have used a tool unless the user specifically asks or it is directly relevant to the user's request. "
                 "If a request cannot be fulfilled by any tool, respond helpfully in text and explain why. "
                 "If a tool call fails or returns an error, explain the error to the user simply. "
-                "Always be concise, clear, and helpful."
-                "Reply should be as short as possible while still being helpful."
+                "When adding anything to memory, always phrase it in the third person, referring to the user as 'the user' or by their username, never as 'I'. "
+                "Always be concise, clear, and helpful. Reply should be as short as possible while still being helpful."
             )
         },
         {"role": "user", "content": user_message}
     ]
-    print("DEBUG: tools sent to model:", json.dumps(tools, indent=2))
+    # print("DEBUG: tools sent to model:", json.dumps(tools, indent=2))
     while True:
         response = client.chat.completions.create(
-            model="qwen-3-32b",
+            model="qwen-3-235b-a22b-instruct-2507",
             messages=messages,
             tools=tools,
             parallel_tool_calls=True
