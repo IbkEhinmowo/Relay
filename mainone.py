@@ -3,7 +3,7 @@ from Core.Processor.LLMAGENT import llmagent_process
 import sys
 
 def main():
-    result = llmagent_process("update notion page with the words i love you 999 and get the weather in new york")
+    result = llmagent_process("get the weather in new york and update the notion page with it")
     print(result)
 
 if __name__ == "__main__":

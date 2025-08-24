@@ -1,10 +1,12 @@
 import os
 import json
 import requests
+import asyncio
 from typing import Dict, Any
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 from Core.Processor.Notion import NotionIntegration
+from Core.Integrations.discord_bot import send_discord_message
 
 
 # Initialize MCP server
@@ -84,6 +86,24 @@ tools = [
                 "required": ["written_string"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "send_discord_message",
+            "strict": False,
+            "description": "Send a message to a Discord channel ",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "description": "The message to send."
+                    }
+                },
+                "required": ["message"]
+            }
+        }
     }
     # Additional tools can be added here
 ]
@@ -105,16 +125,30 @@ def register_tools(mcp_instance) -> None:
     This keeps MCP specifics out of import-time side effects and allows reuse
     of the same functions by both LLM function-calling and MCP Server for Testing.
     """
-    # This function is now deprecated since tools are registered directly above
+
+@mcp.tool()
+def send_discord_message_tool(message: str) -> str:
+    """Send a message to a  Discord channel """
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            asyncio.create_task(send_discord_message(message))
+            return f"Message scheduled to be sent to channel."
+        else:
+            loop.run_until_complete(send_discord_message(message))
+            return f"Message sent to channel."
+    except Exception as e:
+        return f"Failed to send message: {e}"
     
     
     
     
     
-# Dictionary of available functions mapped by name
+# Dictionary of available functions mapped by name for cerebras
 available_functions = {
     "get_weather": get_weather,
-    "update_notion_page": update_notion_page
+    "update_notion_page": update_notion_page,
+    "send_discord_message": send_discord_message_tool
     # "DataBase_query": DataBase_query,
     # "Scrape_Description_Data": Scrape_Description_Data,
     # "Create_ticket": Create_ticket,

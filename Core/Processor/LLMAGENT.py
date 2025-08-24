@@ -26,7 +26,6 @@ def chat(user_message: str) -> str:
         },
         {"role": "user", "content": user_message}
     ]
-    print("DEBUG: tools sent to model:", json.dumps(tools, indent=2))
     while True:
         response = client.chat.completions.create(
             model="qwen-3-32b",
@@ -35,7 +34,6 @@ def chat(user_message: str) -> str:
             parallel_tool_calls=True
         )
         choice = response.choices[0].message
-        print("DEBUG: Model response:", choice)
         # If the assistant didn’t ask for a tool, we’re done
         if not choice.tool_calls:
             return choice.content

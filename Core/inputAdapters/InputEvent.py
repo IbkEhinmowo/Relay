@@ -5,9 +5,9 @@ from datetime import datetime
 class Event(BaseModel):
     # Common fields for all sources
     source: str               # "discord", "marketplace", "email"
-    type: str                 # "message", "task", "listing"
+    type: Optional[str] = None # "message", "task", "listing"
     content: str              # Main text/content of the event
-    timestamp: datetime
+    timestamp: Optional[str] = None
     sender: Optional[str] = None
     priority: Optional[str] = None   # e.g., "critical", "high", "medium", "low"
     
