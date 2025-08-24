@@ -92,44 +92,49 @@ async def hello(ctx):
 
 @bot.command()
 async def ask(ctx):
-    await ctx.trigger_typing()
-    await ctx.send("What is your question?")
+
+    async with ctx.typing():
+        await ctx.send("What is your question?")
 
     def check(m):
         return m.author == ctx.author and m.channel == ctx.channel
 
     try:
         msg = await bot.wait_for("message", check=check, timeout=30)
-        await ctx.trigger_typing()
-        # Process the question using llmagent_process
-        result = llmagent_process(msg.content)
-        await ctx.send(result)
+        async with ctx.typing():
+            # Process the question using llmagent_process
+            result = llmagent_process(msg.content)
+            await ctx.send(result)
     except asyncio.TimeoutError:
-        await ctx.trigger_typing()
-        await ctx.send("You took too long to respond!")
+        async with ctx.typing():
+            await ctx.send("You took too long to respond!")
 
 
 # Respond to @bot mentions also 
 @bot.event
 async def on_message(message):
+    print(f"on_message fired: author={message.author}, content={message.content}, mentions={message.mentions}")
+    print(f"Raw content: {message.content}")
+    print(f"Mentioned user IDs: {[user.id for user in message.mentions]}")
+    print(f"Bot user ID: {bot.user.id if bot.user else None}")
     if message.author == bot.user:
         return
-    # Check if the bot is mentioned
+    # Check if the bot is mentioned (official Discord mention)
     if bot.user in message.mentions:
-        await message.channel.trigger_typing()
-        quoted_content = None
-        # If replying to a message, get the original content
-        if message.reference and message.reference.resolved:
-            quoted_content = message.reference.resolved.content
-        # Standardize input for LLM
-        event = DiscordInputEvent(
-            user_id=str(message.author.id),
-            content=message.content,
-            username=message.author.display_name,
-            quoted_content=quoted_content
-        )
-        result = llmagent_process(event.to_prompt())
-        await message.channel.send(result)
+        async with message.channel.typing():
+            quoted_content = None
+            # If replying to a message, get the original content
+            if message.reference and message.reference.resolved:
+                quoted_content = message.reference.resolved.content
+            # Standardize input for LLM
+            event = DiscordInputEvent(
+                user_id=str(message.author.id),
+                content=message.content,
+                username=message.author.display_name,
+                quoted_content=quoted_content
+            )
+            result = llmagent_process(event.to_prompt())
+            await message.channel.send(result)
     # Allow commands to work as well
     await bot.process_commands(message)
 

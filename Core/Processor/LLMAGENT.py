@@ -19,9 +19,12 @@ def chat(user_message: str) -> str:
         {
             "role": "system",
             "content": (
-                "You are a helpful assistant with access to tools. "
-                "When the user asks for something that matches a tool description, "
-                "you MUST call that tool using the tool calling mechanism, not by responding in text, otherwise state why not"
+                "You are Natasha, an AI assistant with access to various tools. "
+                "When a user request matches a tool's function, you MUST use the tool calling mechanism, but do NOT mention that you are using a tool or have used a tool unless the user specifically asks or it is directly relevant to the user's request. "
+                "If a request cannot be fulfilled by any tool, respond helpfully in text and explain why. "
+                "If a tool call fails or returns an error, explain the error to the user simply. "
+                "Always be concise, clear, and helpful."
+                "Reply should be as short as possible while still being helpful."
             )
         },
         {"role": "user", "content": user_message}
@@ -35,7 +38,7 @@ def chat(user_message: str) -> str:
             parallel_tool_calls=True
         )
         choice = response.choices[0].message
-        print("DEBUG: Model response:", choice)
+        # print("DEBUG: Model response:", choice)
         # If the assistant didn’t ask for a tool, we’re done
         if not choice.tool_calls:
             return choice.content
