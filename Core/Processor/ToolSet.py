@@ -6,6 +6,7 @@ from typing import Dict, Any
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 from Core.Integrations.Notion import NotionIntegration
+from Core.Integrations.memory import Memory
 
 
 
@@ -104,6 +105,53 @@ tools = [
                 "required": ["message"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "memory_add",
+            "strict": False,
+            "description": "Add a memory item for a user.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "user_id": {"type": "string", "description": "The user ID."},
+                    "content": {"type": "string", "description": "The memory content to add."}
+                },
+                "required": ["user_id", "content"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "memory_list",
+            "strict": False,
+            "description": "List all memory items for a user.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "user_id": {"type": "string", "description": "The user ID."}
+                },
+                "required": ["user_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "memory_delete",
+            "strict": False,
+            "description": "Delete a memory item for a user by index.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "user_id": {"type": "string", "description": "The user ID."},
+                    "index": {"type": "integer", "description": "The index of the memory item to delete."}
+                },
+                "required": ["user_id", "index"]
+            }
+        }
     }
     # Additional tools can be added here
 ]
@@ -118,6 +166,24 @@ def get_weather_tool(query: str) -> Dict[str, Any]:
 def update_notion_page(written_string: str) -> str:
     """Update a Notion page with new data."""
     return notion.update_page(written_string)
+
+# Memory tools
+@mcp.tool()
+def memory_add(user_id: str, content: str) -> str:
+    mem = Memory(user_id)
+    mem.add(content)
+    return f"Added memory for user {user_id}."
+
+@mcp.tool()
+def memory_list(user_id: str):
+    mem = Memory(user_id)
+    return mem.list()
+
+@mcp.tool()
+def memory_delete(user_id: str, index: int) -> str:
+    mem = Memory(user_id)
+    mem.delete(index)
+    return f"Deleted memory index {index} for user {user_id}."
 
 def register_tools(mcp_instance) -> None:
     """Register available tools with a FastMCP instance.
@@ -147,9 +213,12 @@ def send_discord_message_tool(message: str) -> str:
 available_functions = {
     "get_weather": get_weather,
     "update_notion_page": update_notion_page,
-    "send_discord_message": send_discord_message_tool
+    "send_discord_message": send_discord_message_tool,
     # "DataBase_query": DataBase_query,
     # "Scrape_Description_Data": Scrape_Description_Data,
     # "Create_ticket": Create_ticket,
     # Add new tools here
+    "memory_add": memory_add,
+    "memory_list": memory_list,
+    "memory_delete": memory_delete
 }

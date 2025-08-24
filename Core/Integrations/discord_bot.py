@@ -11,6 +11,7 @@ import json
 load_dotenv()
 import asyncio
 from Core.Processor.LLMAGENT import llmagent_process
+from Core.inputAdapters.DiscordInputEvent import DiscordInputEvent
 # SSL fixes for macOS
 os.environ['SSL_CERT_FILE'] = certifi.where()
 os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
@@ -106,6 +107,31 @@ async def ask(ctx):
     except asyncio.TimeoutError:
         await ctx.trigger_typing()
         await ctx.send("You took too long to respond!")
+
+
+# Respond to @bot mentions also 
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
+    # Check if the bot is mentioned
+    if bot.user in message.mentions:
+        await message.channel.trigger_typing()
+        quoted_content = None
+        # If replying to a message, get the original content
+        if message.reference and message.reference.resolved:
+            quoted_content = message.reference.resolved.content
+        # Standardize input for LLM
+        event = DiscordInputEvent(
+            user_id=str(message.author.id),
+            content=message.content,
+            username=message.author.display_name,
+            quoted_content=quoted_content
+        )
+        result = llmagent_process(event.to_prompt())
+        await message.channel.send(result)
+    # Allow commands to work as well
+    await bot.process_commands(message)
 
 if __name__ == "__main__":
     bot.run(BOT_TOKEN)
