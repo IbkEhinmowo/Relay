@@ -34,7 +34,7 @@ class NotionIntegration:
     def __init__(self):
         load_dotenv()
         self.notion = Client(auth=os.getenv("NOTION_API_KEY"))
-        self.page_id = "256add24-7b47-80f9-9934-dc21854145fd"  # your target page
+        self.page_id = Client(auth=os.getenv("NOTION_PAGE_ID"))  # your target page
 
     def update_page(self, written_string: str):
         """Update a Notion page with a new title."""

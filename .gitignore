@@ -7,3 +7,6 @@ features.readme
 __pycache__/
 *.py[cod]
 
+
+llm.py
+main.py
