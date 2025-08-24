@@ -1,9 +1,13 @@
+print("STARTING BOT")
 import os
 import certifi
 from discord.ext import commands
 from dotenv import load_dotenv
 import discord
 import ssl
+import redis
+import json
+
 load_dotenv()
 import asyncio
 from Core.Processor.LLMAGENT import llmagent_process
@@ -25,21 +29,54 @@ intents.message_content = True  # Needed to read message content for commands
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
+
 async def on_ready():
-    print(f'{bot.user} has connected to Discord!')
+    # print(f'ON_READY: {bot.user} has connected to Discord!')
     channel = bot.get_channel(reportChannelID)
     if channel:
         await channel.send("fbot is now online and connected!")
     else:
-        print(f"Channel with ID {reportChannelID} not found.")
+        # print(f"Channel with ID {reportChannelID} not found.")
+        pass
+
+    # print("ON_READY: Scheduling Redis worker...")
+    bot.loop.create_task(redis_message_worker())
         
         
         
-async def send_discord_message(message):
+
+async def send_discord_message(message: str):
     channel = bot.get_channel(reportChannelID)
+    # print(f"DEBUG: Sending message to channel ID {reportChannelID}: {message}")
     if channel:
         await channel.send(message)
-        
+    else:
+        # print(f"Channel with ID {reportChannelID} not found.")
+        pass
+
+async def redis_message_worker():
+    r = redis.Redis(host='localhost', port=6379, db=0)
+    await bot.wait_until_ready()
+    # print("DEBUG: Redis worker started and waiting for messages...")
+    while not bot.is_closed():
+        msg_json = r.rpop("discord_queue:default")
+    # print(f"DEBUG: Read from Redis: {msg_json}")
+        if msg_json:
+            try:
+                payload = json.loads(msg_json)
+                content = payload.get("content")
+                # print(f"DEBUG: Decoded payload: {payload}")
+                if content:
+                    await send_discord_message(content)
+            except Exception as e:
+                # print(f"Redis worker error: {e}")
+                pass
+        else:
+            await asyncio.sleep(2)
+    
+    
+
+
         
         
 

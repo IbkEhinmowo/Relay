@@ -1,0 +1,17 @@
+import redis
+
+class Memory:
+    def __init__(self, user_id):
+        self.user_id = user_id
+        self.key = f"memory:user:{user_id}"
+        self.r = redis.Redis(host='localhost', port=6379, db=0)
+
+    def add(self, content):
+        self.r.rpush(self.key, content)
+
+    def list(self):
+        return [mem.decode() for mem in self.r.lrange(self.key, 0, -1)]
+
+    def delete(self, index):
+        self.r.lset(self.key, index, "__DELETED__")
+        self.r.lrem(self.key, 1, "__DELETED__")

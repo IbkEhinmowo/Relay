@@ -6,7 +6,7 @@ from typing import Dict, Any
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 from Core.Integrations.Notion import NotionIntegration
-from Core.Integrations.discord_bot import send_discord_message
+
 
 
 # Initialize MCP server
@@ -130,15 +130,14 @@ def register_tools(mcp_instance) -> None:
 def send_discord_message_tool(message: str) -> str:
     """Send a message to a  Discord channel """
     try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            asyncio.create_task(send_discord_message(message))
-            return f"Message scheduled to be sent to channel."
-        else:
-            loop.run_until_complete(send_discord_message(message))
-            return f"Message sent to channel."
+        import redis
+        import json
+        r = redis.Redis(host='localhost', port=6379, db=0)
+        payload = {"content": message}
+        r.lpush("discord_queue:default", json.dumps(payload))
+        return "Message enqueued to discord_queue:default."
     except Exception as e:
-        return f"Failed to send message: {e}"
+        return f"Failed to enqueue message: {e}"
     
     
     
