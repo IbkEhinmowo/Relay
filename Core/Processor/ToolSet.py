@@ -1,4 +1,4 @@
-
+from Core.Integrations.websearch import Web
 import os
 import json
 import requests
@@ -53,6 +53,36 @@ def get_weather(query: str) -> Dict[str, Any]:
 
 # Define tool schema according to Cerebras requirements
 tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "web_search_result",
+            "strict": False,
+            "description": "Performs a web search and returns the result.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "The search query."}
+                },
+                "required": ["query"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "web_news_result",
+            "strict": False,
+            "description": "Performs a news search and returns the result.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "The news search query."}
+                },
+                "required": ["query"]
+            }
+        }
+    },
     {
         "type": "function",
         "function": {
@@ -112,7 +142,7 @@ tools = [
         "function": {
             "name": "memory_add",
             "strict": False,
-            "description": "Add a memory item for a user.",
+            "description": "Add something memorable about a user.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -159,7 +189,7 @@ tools = [
         "function": {
             "name": "memory_changing",
             "strict": False,
-            "description": "Change a memory item for a user by index.",
+            "description": "make changes to a memory item for a user by its index.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -232,6 +262,16 @@ def send_discord_message_tool(message: str, from_discord: bool = False) -> str:
         return "Message enqueued to discord_queue:default."
     except Exception as e:
         return f"Failed to enqueue message: {e}"
+
+@mcp.tool()
+def web_search_result(query: str):
+    """Perform a Brave web search and return the result."""
+    return Web.search_result(query)
+
+@mcp.tool()
+def web_news_result(query: str):
+    """Perform a Brave news search and return the result."""
+    return Web.news_result(query)
     
     
     
@@ -242,12 +282,10 @@ available_functions = {
     "get_weather": get_weather,
     "update_notion_page": update_notion_page,
     "send_discord_message": send_discord_message_tool,
-    # "DataBase_query": DataBase_query,
-    # "Scrape_Description_Data": Scrape_Description_Data,
-    # "Create_ticket": Create_ticket,
-    # Add new tools here
     "memory_add": memory_add,
     "memory_list": memory_list,
     "memory_delete": memory_delete,
-    "memory_changing": memory_changing
+    "memory_changing": memory_changing,
+    "web_search_result": web_search_result,
+    "web_news_result": web_news_result
 }

@@ -2,13 +2,10 @@ print("STARTING BOT")
 import os
 import certifi
 from discord.ext import commands
-from dotenv import load_dotenv
 import discord
 import ssl
 import redis
 import json
-
-load_dotenv()
 import asyncio
 from Core.Processor.LLMAGENT import llmagent_process
 from Core.inputAdapters.DiscordInputEvent import DiscordInputEvent
