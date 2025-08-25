@@ -12,53 +12,56 @@ client = Cerebras(
   api_key=os.environ.get("CEREBRAS_API_KEY"),
 )
 
-def chat(user_message: str) -> str:
-    """Chat with AI that can use tools"""
-    
+import asyncio
+
+async def chat(user_message: str) -> str:
+    """Chat with AI that can use tools (async, non-blocking)"""
+    import datetime
+    today = datetime.date.today().strftime('%B %d, %Y')
     messages = [
         {
             "role": "system",
             "content": (
-                "You are Natasha, an AI assistant with access to various tools. "
-                "When a user request matches a tool's function, you MUST use the tool calling mechanism, but do NOT mention that you are using a tool or have used a tool unless the user specifically asks or it is directly relevant to the user's request. "
-                "If a request cannot be fulfilled by any tool, respond helpfully in text and explain why. "
-                "If a tool call fails or returns an error, explain the error to the user simply. "
-                "When adding anything to memory, always phrase it in the third person, referring to the user as 'the user' or by their username, never as 'I'. "
-                "After using a tool, only provide a single, concise response to the user. Do not repeat or summarize tool actions unless the user specifically asks for a summary or confirmation. "
-                "Always be concise, clear, and helpful. Reply should be as short as possible while still being helpful."
+                f"Today is {today}. "
+                "You are Fatoom, an AI Agent with tool access. "
+                "If you are about to use a tool, especially if it may take some time, let the user know first (e.g., 'i'll work on that now...' or 'This may take a moment...'). "
+                "Always use a tool if it matches the user's request. "
+                "If no tool fits, reply helpfully and explain why. "
+                "If a tool fails, explain the error simply. "
+                "When adding to memory, use third person (the user or their username), never 'I'. "
+                "After using a tool, reply only once, concisely, and do not summarize tool actions unless asked. "
+                "Be concise, clear, and helpful."
             )
         },
         {"role": "user", "content": user_message}
     ]
-    # print("DEBUG: tools sent to model:", json.dumps(tools, indent=2))
+    loop = asyncio.get_running_loop()
     while True:
-        response = client.chat.completions.create(
-            model="qwen-3-235b-a22b-instruct-2507",
-            messages=messages,
-            tools=tools,
-            parallel_tool_calls=True
+        response = await loop.run_in_executor(
+            None,
+            lambda: client.chat.completions.create(
+                model="gpt-oss-120b",
+                messages=messages,
+                tools=tools,
+                parallel_tool_calls=True
+            )
         )
         choice = response.choices[0].message
-        # print("DEBUG: Model response:", choice)
-        # If the assistant didn’t ask for a tool, we’re done
         if not choice.tool_calls:
             return choice.content
-        # Save the assistant turn exactly as returned
         messages.append(choice.model_dump())
-        # Run the requested tool(s)
         for call in choice.tool_calls:
             function_name = call.function.name
             if function_name not in available_functions:
                 return f"Unknown tool requested: {function_name}"
             arguments = json.loads(call.function.arguments)
             result = available_functions[function_name](**arguments)
-            # Feed the tool result back
             messages.append({
                 "role": "tool",
                 "tool_call_id": call.id,
                 "content": json.dumps(result),
             })
 
-def llmagent_process(message: str):
-    """Process an input event using the LLM agent"""
-    return chat(message)
+async def llmagent_process(message: str):
+    """Process an input event using the LLM agent (async)"""
+    return await chat(message)

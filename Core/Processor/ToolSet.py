@@ -263,15 +263,17 @@ def send_discord_message_tool(message: str, from_discord: bool = False) -> str:
     except Exception as e:
         return f"Failed to enqueue message: {e}"
 
+
 @mcp.tool()
 def web_search_result(query: str):
     """Perform a Brave web search and return the result."""
-    return Web.search_result(query)
+    return Web().search_result(query)
+
 
 @mcp.tool()
 def web_news_result(query: str):
     """Perform a Brave news search and return the result."""
-    return Web.news_result(query)
+    return Web().news_result(query)
     
     
     

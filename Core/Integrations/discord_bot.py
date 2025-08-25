@@ -109,7 +109,7 @@ async def ask(ctx):
                 username=msg.author.display_name,
                 quoted_content=quoted_content
             )
-            result = llmagent_process(event.to_prompt())
+            result = await llmagent_process(event.to_prompt())
             await ctx.send(result)
     except asyncio.TimeoutError:
         async with ctx.typing():
@@ -158,7 +158,7 @@ async def on_message(message):
                 quoted_content=quoted_content,
                 message_history=message_history
             )
-            result = llmagent_process(event.to_prompt())
+            result = await llmagent_process(event.to_prompt())
             await message.channel.send(result)
     # Allow commands to work as well
     await bot.process_commands(message)

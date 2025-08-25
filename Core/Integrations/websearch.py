@@ -21,9 +21,12 @@ class Web:
                 params={
                     "q": query,
                     "offset": "1",
-                    "summary": "true"
+                    "summary": "true",
+                    "count": "10"
+                    
                 },
             ).json()
+            print(response)
             return response
         except Exception as e:
             return {"error": str(e)}
@@ -40,7 +43,8 @@ class Web:
                 params={
                     "q": query,
                     "offset": "1",
-                    "summary": "true"
+                    "summary": "true",
+                    "count": "10"
                 },
             ).json()
             return response
