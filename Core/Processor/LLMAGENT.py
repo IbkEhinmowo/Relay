@@ -24,6 +24,7 @@ def chat(user_message: str) -> str:
                 "If a request cannot be fulfilled by any tool, respond helpfully in text and explain why. "
                 "If a tool call fails or returns an error, explain the error to the user simply. "
                 "When adding anything to memory, always phrase it in the third person, referring to the user as 'the user' or by their username, never as 'I'. "
+                "After using a tool, only provide a single, concise response to the user. Do not repeat or summarize tool actions unless the user specifically asks for a summary or confirmation. "
                 "Always be concise, clear, and helpful. Reply should be as short as possible while still being helpful."
             )
         },

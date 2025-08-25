@@ -8,9 +8,16 @@ class Memory:
 
     def add(self, content):
         self.r.rpush(self.key, content)
+        
+    def changing(self, index, new_content):
+        redis_index = index - 1
+        if self.r.exists(self.key):
+            self.r.lset(self.key, redis_index, new_content)
 
     def list(self):
         return [mem.decode() for mem in self.r.lrange(self.key, 0, -1)]
+    
+    
 
     def delete(self, index):
         # Accept 1-based index from user, convert to 0-based for Redis

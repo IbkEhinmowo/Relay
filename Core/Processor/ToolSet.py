@@ -1,3 +1,4 @@
+
 import os
 import json
 import requests
@@ -152,10 +153,35 @@ tools = [
                 "required": ["user_id", "index"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "memory_changing",
+            "strict": False,
+            "description": "Change a memory item for a user by index.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "user_id": {"type": "string", "description": "The user ID."},
+                    "index": {"type": "integer", "description": "The index of the memory item to make changes to."},
+                    "new_content": {"type": "string", "description": "The new content for the memory item."}
+                },
+                "required": ["user_id", "index", "new_content"]
+            }
+        }
     }
-    # Additional tools can be added here
 ]
+# Register MCP tools
 
+@mcp.tool()
+def memory_changing(user_id: str, index: int, new_content: str) -> str:
+    """Change a memory item for a user by index."""
+    mem = Memory(user_id)
+    mem.changing(index, new_content)
+    return f"Changed memory index {index} for user {user_id} to {new_content}."
+    # Additional tools can be added here
+    
 # Register MCP tools
 @mcp.tool()
 def get_weather_tool(query: str) -> Dict[str, Any]:
@@ -193,8 +219,10 @@ def register_tools(mcp_instance) -> None:
     """
 
 @mcp.tool()
-def send_discord_message_tool(message: str) -> str:
-    """Send a message to a  Discord channel """
+def send_discord_message_tool(message: str, from_discord: bool = False) -> str:
+    """Send a message to a Discord channel, but ignore if called from Discord context."""
+    if from_discord:
+        return "Ignored: Already in Discord context."
     try:
         import redis
         import json
@@ -220,5 +248,6 @@ available_functions = {
     # Add new tools here
     "memory_add": memory_add,
     "memory_list": memory_list,
-    "memory_delete": memory_delete
+    "memory_delete": memory_delete,
+    "memory_changing": memory_changing
 }

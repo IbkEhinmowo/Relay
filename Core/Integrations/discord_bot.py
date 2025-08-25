@@ -102,8 +102,17 @@ async def ask(ctx):
     try:
         msg = await bot.wait_for("message", check=check, timeout=30)
         async with ctx.typing():
-            # Process the question using llmagent_process
-            result = llmagent_process(msg.content)
+            # Use DiscordInputEvent to standardize input
+            quoted_content = None
+            if msg.reference and msg.reference.resolved:
+                quoted_content = msg.reference.resolved.content
+            event = DiscordInputEvent(
+                user_id=str(msg.author.id),
+                content=msg.content,
+                username=msg.author.display_name,
+                quoted_content=quoted_content
+            )
+            result = llmagent_process(event.to_prompt())
             await ctx.send(result)
     except asyncio.TimeoutError:
         async with ctx.typing():
@@ -113,12 +122,20 @@ async def ask(ctx):
 # Respond to @bot mentions also 
 @bot.event
 async def on_message(message):
-    print(f"on_message fired: author={message.author}, content={message.content}, mentions={message.mentions}")
-    print(f"Raw content: {message.content}")
-    print(f"Mentioned user IDs: {[user.id for user in message.mentions]}")
-    print(f"Bot user ID: {bot.user.id if bot.user else None}")
     if message.author == bot.user:
         return
+
+    # Redis connection for chat context (db=1)
+    chat_redis = redis.Redis(host='localhost', port=6379, db=1)
+    channel_id = str(message.channel.id)
+    # Store both username and message content
+    msg_text = json.dumps({"username": message.author.display_name, "content": message.content})
+    redis_key = f"channel:{channel_id}:history"
+    # Add message to channel's history (right push)
+    chat_redis.rpush(redis_key, msg_text)
+    # Trim to last 70 messages
+    chat_redis.ltrim(redis_key, -70, -1)
+
     # Check if the bot is mentioned (official Discord mention)
     if bot.user in message.mentions:
         async with message.channel.typing():
@@ -126,12 +143,23 @@ async def on_message(message):
             # If replying to a message, get the original content
             if message.reference and message.reference.resolved:
                 quoted_content = message.reference.resolved.content
-            # Standardize input for LLM
+            # Get channel message history (excluding current message)
+            history = chat_redis.lrange(redis_key, 0, -2)  # All except last (current)
+            # Decode bytes to str and format as "username: content"
+            message_history = []
+            for h in history:
+                try:
+                    msg_obj = json.loads(h.decode('utf-8'))
+                    formatted = f"{msg_obj.get('username', 'Unknown')}: {msg_obj.get('content', '')}"
+                except Exception:
+                    formatted = h.decode('utf-8')
+                message_history.append(formatted)
             event = DiscordInputEvent(
                 user_id=str(message.author.id),
                 content=message.content,
                 username=message.author.display_name,
-                quoted_content=quoted_content
+                quoted_content=quoted_content,
+                message_history=message_history
             )
             result = llmagent_process(event.to_prompt())
             await message.channel.send(result)
@@ -140,3 +168,4 @@ async def on_message(message):
 
 if __name__ == "__main__":
     bot.run(BOT_TOKEN)
+    
