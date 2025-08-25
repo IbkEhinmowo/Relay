@@ -130,8 +130,8 @@ async def on_message(message):
     redis_key = f"channel:{channel_id}:history"
     # Add message to channel's history (right push)
     chat_redis.rpush(redis_key, msg_text)
-    # Trim to last 70 messages
-    chat_redis.ltrim(redis_key, -70, -1)
+    # Trim to last 30 messages
+    chat_redis.ltrim(redis_key, -30, -1)
 
     # Check if the bot is mentioned (official Discord mention)
     if bot.user in message.mentions:

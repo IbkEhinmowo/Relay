@@ -30,13 +30,15 @@ async def chat(user_message: str) -> str:
                 "If a tool fails, explain the error simply. "
                 "When adding to memory, use third person (the user or their username), never 'I'. "
                 "After using a tool, reply only once, concisely, and do not summarize tool actions unless asked. "
-                "Be concise, clear, and helpful."
+                "Be concise, clear, and helpful. "
+                "IMPORTANT: Your response must be 2000 characters or fewer. If the answer is long, summarize or split into multiple messages"
             )
         },
         {"role": "user", "content": user_message}
     ]
     loop = asyncio.get_running_loop()
     while True:
+        await asyncio.sleep(1) 
         response = await loop.run_in_executor(
             None,
             lambda: client.chat.completions.create(
