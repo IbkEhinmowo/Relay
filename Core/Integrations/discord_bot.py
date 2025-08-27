@@ -158,8 +158,13 @@ async def on_message(message):
                 quoted_content=quoted_content,
                 message_history=message_history
             )
-            result = await llmagent_process(event.to_prompt())
-            await message.channel.send(result)
+            
+            try:
+                print (event.to_prompt())
+                result = await llmagent_process(event.to_prompt())
+                await message.channel.send(result)
+            except Exception as e:
+                await message.channel.send(f"Sorry, an error occurred: {type(e).__name__}: {e}")
     # Allow commands to work as well
     await bot.process_commands(message)
 
