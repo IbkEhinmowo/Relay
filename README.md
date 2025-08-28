@@ -6,7 +6,7 @@
 
 Relay is an extensible, multi-tool AI agent built in Python using an asynchronous architecture. It leverages a tool-calling LLM to interact with external APIs, perform complex tasks, and maintain conversation state, demonstrating a robust framework for creating autonomous agents.
 
-> **Disclaimer!** While this demo uses Discord, the core agent logic is decoupled from the chat interface and could be connected to other platforms like Slack, web applications, or automated scripts.
+> **Disclaimer!** While this demo uses Discord, the core agent logic is decoupled from the chat interface and could be connected to other platforms like Slack, web applications, or automated scripts or Schedular. I simply used discord for tha ease of testing
 
 ---
 
