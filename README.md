@@ -33,6 +33,7 @@ This isn't just a chatbot; it's an engineered system with a powerful set of capa
 
 ## Future Capabilities
 
+- **Retrieval-Augmented Generation (RAG):** Implement RAG to optimize the context window by dynamically fetching relevant information from a vector database, enabling more context-aware conversations and information without exceeding token limits.
 - **Scheduled & Automated Tasks:** Configure Relay to perform actions at specific times or intervals, turning it into a proactive agent.
 - **Expanded Integrations:**
   - **Slack:** Enable two-way communication, allowing Relay to receive commands and proactively send messages in your Slack workspace.

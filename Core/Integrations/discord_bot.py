@@ -116,7 +116,7 @@ async def ask(ctx):
             # Store bot's reply in Redis
             chat_redis = redis.Redis(host='localhost', port=6379, db=1)
             redis_key = f"channel:{ctx.channel.id}:history"
-            bot_msg_text = json.dumps({"username": "Natasha", "content": result})
+            bot_msg_text = json.dumps({"username": "Relay", "content": result})
             chat_redis.rpush(redis_key, bot_msg_text)
             chat_redis.ltrim(redis_key, -20, -1)
             chat_redis.expire(redis_key, 1200)
@@ -175,7 +175,7 @@ async def on_message(message):
                 result = await llmagent_process(event.to_prompt())
                 await message.channel.send(result)
                 # Store bot's reply in Redis
-                bot_msg_text = json.dumps({"username": "Natasha", "content": result})
+                bot_msg_text = json.dumps({"username": "Relay", "content": result})
                 chat_redis.rpush(redis_key, bot_msg_text)
                 chat_redis.ltrim(redis_key, -20, -1)
                 chat_redis.expire(redis_key, 1200)
