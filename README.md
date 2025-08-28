@@ -16,12 +16,11 @@ This isn't just a chatbot; it's an engineered system with a powerful set of capa
 
 - **Multi-Step Tool Chaining:** Relay can understand complex, multi-part requests and chain multiple tools together to find a solution. For example, it can search for news, scrape an article from the results, and then summarize the content, all from a single prompt.
 - **Web Intelligence:**
-  - **Web & News Search:** Access up-to-date information from the internet.
+  - **Web & News Search:** Access up-to-date information from the internet & **Weather:** Get the current weather for any location.
   - **Intelligent Web Scraper:** Scrape and parse the content of any URL.
     - *Evades common anti-botting measures using stealth techniques, enabling data extraction from modern, dynamic websites.*
 - **Persistent Memory:** Relay remembers key details about users across conversations using a Redis-backed memory store, allowing for personalized interactions.
-- **Real-World Knowledge:**
-  - **Weather:** Get the current weather for any location.
+
 - **External Integrations:**
   - **Notion:** Update & Create Notion pages directly from Discord.
   - **Discord:** Can send messages programmatically(without input).
