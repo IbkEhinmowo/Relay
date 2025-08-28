@@ -3,7 +3,7 @@
 # Relay - Extensible Multi-Tool AI Agent
 
 <div align="center">
-  <img src="./assets/icon-512.png" alt="Relay Icon" width="512">
+  <img src="./assets/icon-512.png" alt="Relay Icon" width="100">
 </div>
 
 
