@@ -17,7 +17,7 @@ This isn't just a chatbot; it's an engineered system with a powerful set of capa
 - **Multi-Step Tool Chaining:** Relay can understand complex, multi-part requests and chain multiple tools together to find a solution. For example, it can search for news, scrape an article from the results, and then summarize the content, all from a single prompt.
 - **Web Intelligence:**
   - **Web & News Search:** Access up-to-date information from the internet.
-  - **Intelligent Web Scraper:** Scrape and parse the content of any URL.
+  - **Robust Web Scraper:** Reliably extracts content from modern, dynamic websites (including Single-Page Applications) by using a full browser engine (Playwright) and stealth techniques to handle common anti-scraping measures.
 - **Persistent Memory:** Relay remembers key details about users across conversations using a Redis-backed memory store, allowing for personalized interactions.
 - **Real-World Knowledge:**
   - **Weather:** Get the current weather for any location.
@@ -37,7 +37,7 @@ graph TD
     A[Discord User] -- @mention --> B(Discord Bot);
     B -- Creates Event --> C{LLM Agent (Cerebras)};
     C -- Decides to Use Tool --> D[ToolSet];
-    D -- Executes Tool --> E(External APIs & functions e.g., Scraping, Web Search, Notion writing);
+    D -- Executes Tool --> E(External APIs & functions e.g., Scraping, Web Search, Notion writing, user memory updates);
     E -- Returns Data --> D;
     D -- Returns Result --> C;
     C -- Needs Memory/History --> F(Redis);
