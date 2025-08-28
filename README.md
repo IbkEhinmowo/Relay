@@ -17,7 +17,8 @@ This isn't just a chatbot; it's an engineered system with a powerful set of capa
 - **Multi-Step Tool Chaining:** Relay can understand complex, multi-part requests and chain multiple tools together to find a solution. For example, it can search for news, scrape an article from the results, and then summarize the content, all from a single prompt.
 - **Web Intelligence:**
   - **Web & News Search:** Access up-to-date information from the internet.
-  - **Robust Web Scraper:** Reliably extracts content from modern, dynamic websites (including Single-Page Applications) by using a full browser engine (Playwright) and stealth techniques to handle common anti-scraping measures.
+  - **Intelligent Web Scraper:** Scrape and parse the content of any URL.
+    - *Evades common anti-botting measures using stealth techniques, enabling data extraction from modern, dynamic websites.*
 - **Persistent Memory:** Relay remembers key details about users across conversations using a Redis-backed memory store, allowing for personalized interactions.
 - **Real-World Knowledge:**
   - **Weather:** Get the current weather for any location.
@@ -30,25 +31,9 @@ This isn't just a chatbot; it's an engineered system with a powerful set of capa
 ## System Architecture
 
 The project is designed as a decoupled, event-driven system, showcasing modern software engineering practices.
-
-```
-mermaid
-graph TD
-    A[Discord User] -- @mention --> B(Discord Bot);
-    B -- Creates Event --> C{LLM Agent (Cerebras)};
-    C -- Decides to Use Tool --> D[ToolSet];
-    D -- Executes Tool --> E(External APIs & functions e.g., Scraping, Web Search, Notion writing, user memory updates);
-    E -- Returns Data --> D;
-    D -- Returns Result --> C;
-    C -- Needs Memory/History --> F(Redis);
-    F -- Returns Data --> C;
-    C -- Generates Final Response --> B;
-    B -- Sends Message --> A;
-```
-
 - **Asynchronous Core:** Built on Python's `asyncio` to handle concurrent I/O operations efficiently, ensuring the bot remains responsive while waiting for API calls.
 - **State & History Management:** Utilizes a Redis database to store conversation history and user-specific memories, enabling context-aware interactions and preventing state loss.
-- **Modular ToolSet:** Tools are designed as independent modules, making the system easily extensible with new capabilities.
+- **Modular ToolSet:** Tools are designed as independent modules, making the system VERY easily extensible with new capabilities. But for now it'll remain a fun to play with discord bot
 
 ---
 
@@ -98,6 +83,6 @@ graph TD
 
 To see the full power of the agent's reasoning capabilities, try a multi-step prompt like this:
 
-> **@Relay Can you find the latest news about the new NVIDIA Blackwell chips, then scrape the first article and tell me the key takeaways?**
+> **@Relay Please research the new NVIDIA Blackwell chips. Create a new Notion page titled 'NVIDIA Blackwell Research' with a summary of your findings, and then send me a message here when you're done.**
 
-This will trigger a chain of actions: `web_news_result` -> `scrape_url` -> Final Answer.
+This will trigger a complex chain of actions, showcasing the agent's potential: `web_search_result` -> `scrape_url` -> `update_notion_page` -> `send_discord_message`.
