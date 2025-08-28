@@ -43,8 +43,8 @@ async def scrape(urls: list[str]) -> list[str]:
         
         await browser.close()
 
-    for text in scraped_texts:
-        print(text) # You can process or log the text here
+    # for text in scraped_texts:
+    #     print(text) 
 
     return scraped_texts
 
