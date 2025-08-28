@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 from Core.Integrations.Notion import NotionIntegration
 from Core.Integrations.memory import Memory
+from Core.Integrations.scraper import scrape
 
 
 
@@ -200,6 +201,27 @@ tools = [
                 "required": ["user_id", "index", "new_content"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "scrape_url",
+            "strict": False,
+            "description": "Scrape a URL and return the text content.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "urls": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "A list of URLs to scrape, or just one url"
+                    }
+                },
+                "required": ["urls"]
+            }
+        }
     }
 ]
 # Register MCP tools
@@ -275,9 +297,10 @@ def web_news_result(query: str):
     """Perform a Brave news search and return the result."""
     return Web().news_result(query)
     
-    
-    
-    
+@mcp.tool()
+async def scrape_url(urls: list[str]) -> list[str]:
+    """Scrape a URL and return the text content."""
+    return await scrape(urls)
     
 # Dictionary of available functions mapped by name for cerebras
 available_functions = {
@@ -289,5 +312,6 @@ available_functions = {
     "memory_delete": memory_delete,
     "memory_changing": memory_changing,
     "web_search_result": web_search_result,
-    "web_news_result": web_news_result
+    "web_news_result": web_news_result,
+    "scrape_url": scrape_url
 }

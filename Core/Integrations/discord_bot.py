@@ -50,7 +50,9 @@ async def send_discord_message(message: str):
             await channel.send(message)
     else:
         pass
-
+    
+    
+## Discord QUEUE WORKER FOR SENDING MESSAGES AS A CALLABLE FROM TOOLS
 async def redis_message_worker():
     r = redis.Redis(host='localhost', port=6379, db=0)
     await bot.wait_until_ready()
