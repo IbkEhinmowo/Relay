@@ -113,6 +113,13 @@ async def ask(ctx):
             )
             result = await llmagent_process(event.to_prompt())
             await ctx.send(result)
+            # Store bot's reply in Redis
+            chat_redis = redis.Redis(host='localhost', port=6379, db=1)
+            redis_key = f"channel:{ctx.channel.id}:history"
+            bot_msg_text = json.dumps({"username": "Natasha", "content": result})
+            chat_redis.rpush(redis_key, bot_msg_text)
+            chat_redis.ltrim(redis_key, -20, -1)
+            chat_redis.expire(redis_key, 1200)
     except asyncio.TimeoutError:
         async with ctx.typing():
             await ctx.send("You took too long to respond!")
@@ -134,6 +141,8 @@ async def on_message(message):
     chat_redis.rpush(redis_key, msg_text)
     # Trim to last 30 messages
     chat_redis.ltrim(redis_key, -30, -1)
+    # Set the history to expire in 20 minutes (1200 seconds)
+    chat_redis.expire(redis_key, 1200)
 
     # Check if the bot is mentioned (official Discord mention)
     if bot.user in message.mentions:
@@ -165,6 +174,11 @@ async def on_message(message):
                 print (event.to_prompt())
                 result = await llmagent_process(event.to_prompt())
                 await message.channel.send(result)
+                # Store bot's reply in Redis
+                bot_msg_text = json.dumps({"username": "Natasha", "content": result})
+                chat_redis.rpush(redis_key, bot_msg_text)
+                chat_redis.ltrim(redis_key, -20, -1)
+                chat_redis.expire(redis_key, 1200)
             except Exception as e:
                 await message.channel.send(f"Sorry, an error occurred: {type(e).__name__}: {e}")
     # Allow commands to work as well

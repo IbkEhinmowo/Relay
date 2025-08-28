@@ -18,6 +18,6 @@ class DiscordInputEvent:
             prompt += "\n--- Conversation History ---"
             for msg in self.message_history:
                 prompt += f"\n{msg}"
-            prompt += "\n--- End History ---"
+            prompt += "\n--- End History --- NOW RESPOND TO THE NEW MESSAGE BELOW ---"
         prompt += f"\n{self.content}"
         return prompt
