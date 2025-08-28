@@ -2,6 +2,12 @@
 
 # Relay - Extensible Multi-Tool AI Agent
 
+<div align="center">
+  <img src="./assets/icon-512.png" alt="Relay Icon" width="512">
+</div>
+
+
+
 ![Demo GIF](https://your-gif-url-here.com/demo.gif) <!-- Replace with a link to your demo GIF -->
 
 Relay is an extensible, multi-tool AI agent built in Python using an asynchronous architecture. It leverages a tool-calling LLM to interact with external APIs, perform complex tasks, and maintain conversation state, demonstrating a robust framework for creating autonomous agents.
