@@ -23,7 +23,7 @@ This isn't just a chatbot; it's an engineered system with a powerful set of capa
   - **Weather:** Get the current weather for any location.
 - **External Integrations:**
   - **Notion:** Update & Create Notion pages directly from Discord.
-  - **Discord:** Can send messages programmatically.
+  - **Discord:** Can send messages programmatically(without input).
 
 ---
 
@@ -31,7 +31,8 @@ This isn't just a chatbot; it's an engineered system with a powerful set of capa
 
 The project is designed as a decoupled, event-driven system, showcasing modern software engineering practices.
 
-```mermaid
+```
+mermaid
 graph TD
     A[Discord User] -- @mention --> B(Discord Bot);
     B -- Creates Event --> C{LLM Agent (Cerebras)};
