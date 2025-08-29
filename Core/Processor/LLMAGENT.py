@@ -69,13 +69,12 @@ async def chat(user_message: str) -> str:
 
             # Log tool response to Redis
             try:
-                r = redis.Redis(host='localhost', port=6379, db=2)
-                log_entry = {
-                    "tool_name": function_name,
-                    "result": result
-                }
-                r.lpush("tool_responses_log", json.dumps(log_entry))
-                r.ltrim("tool_responses_log", 0, 2) # Keep last 100
+                result_str = str(result)
+                if len(result_str) < 8000:  # Don't log very long results
+                    r = redis.Redis(host='localhost', port=6379, db=2)
+                    log_entry = f"Tool Used: {function_name} || Result: {result_str}"
+                    r.lpush("tool_responses_log", log_entry)
+                    r.ltrim("tool_responses_log", 0, 3)  
             except Exception as e:
                 print(f"Failed to log tool response to Redis: {e}")
             
@@ -84,6 +83,7 @@ async def chat(user_message: str) -> str:
                 "tool_call_id": call.id,
                 "content": json.dumps(result),
             })
+            
 
 async def llmagent_process(message: str):
     """Process an input event using the LLM agent (async)"""
