@@ -38,18 +38,6 @@ def get_weather(query: str) -> Dict[str, Any]:
     except requests.RequestException as e:
         return {"error": f"request_failed: {str(e)}"}
 
-# # DISCORD TOOLSET
-# def DataBase_query(name: str, pricebought: str, priceSold: str, profit:str ):
-#     return "Query Result"  # Replace with actual result from database
-
-# # MARKETPLACE TOOLSET
-# def Scrape_Description_Data(url: str):
-#     return "Scraped Data"  # Replace with actual scraped data
-
-# # EMAIL TOOLSET
-# def Create_ticket(subject: str, description: str, priority: str):
-#     return "Ticket Created"  # Replace with actual ticket creation logic
-
 
 
 # Define tool schema according to Cerebras requirements
@@ -102,24 +90,6 @@ tools = [
             }
         }
     },
-    # {
-    #     "type": "function",
-    #     "function": {
-    #         "name": "update_notion_page",
-    #         "strict": False,
-    #         "description": "Update the content of a Notion page with the provided string",
-    #         "parameters": {
-    #             "type": "object",
-    #             "properties": {
-    #                 "written_string": {
-    #                     "type": "string",
-    #                     "description": "The new data for the Notion page"
-    #                 }
-    #             },
-    #             "required": ["written_string"]
-    #         }
-    #     }
-    # },
     {
         "type": "function",
         "function": {
@@ -142,58 +112,6 @@ tools = [
             }
         }
     },
-    # {
-    #     "type": "function",
-    #     "function": {
-    #         "name": "create_notion_database_page",
-    #         "strict": False,
-    #         "description": "Create a new page in a Notion database with a heading and body",
-    #         "parameters": {
-    #             "type": "object",
-    #             "properties": {
-    #                 "database_id": {
-    #                     "type": "string",
-    #                     "description": "The ID of the Notion database to create the page in"
-    #                 },
-    #                 "heading": {
-    #                     "type": "string",
-    #                     "description": "The heading/title for the new database page"
-    #                 },
-    #                 "body": {
-    #                     "type": "string",
-    #                     "description": "The content for the new database page"
-    #                 }
-    #             },
-    #             "required": ["database_id", "heading", "body"]
-    #         }
-    #     }
-    # },
-    # {
-    #     "type": "function",
-    #     "function": {
-    #         "name": "update_notion_page_body",
-    #         "strict": False,
-    #         "description": "Update a Notion page's content with a new heading and body",
-    #         "parameters": {
-    #             "type": "object",
-    #             "properties": {
-    #                 "page_id": {
-    #                     "type": "string",
-    #                     "description": "The ID of the Notion page to update"
-    #                 },
-    #                 "heading": {
-    #                     "type": "string",
-    #                     "description": "The new heading for the page"
-    #                 },
-    #                 "body": {
-    #                     "type": "string",
-    #                     "description": "The new body content for the page"
-    #                 }
-    #             },
-    #             "required": ["page_id", "heading", "body"]
-    #         }
-    #     }
-    # },
     {
         "type": "function",
         "function": {
@@ -296,6 +214,24 @@ tools = [
                 "required": ["urls"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "read_notion_page",
+            "strict": False,
+            "description": "Read a Notion page's properties and content blocks.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "page_id": {
+                        "type": "string",
+                        "description": "The ID of the page to read."
+                    }
+                },
+                "required": ["page_id"]
+            }
+        }
     }
 ]
 # Register MCP tools
@@ -314,14 +250,6 @@ def get_weather_tool(query: str) -> Dict[str, Any]:
     """Get current weather for a location"""
     return get_weather(query)
 
-# @mcp.tool()
-# def update_notion_page(written_string: str) -> str:
-#     """Update a Notion page with new data."""
-#     # Load environment variables first
-#     load_dotenv()
-#     # Create a new instance to ensure we have the latest token
-#     notion_instance = NotionIntegration()
-#     return notion_instance.update_page(written_string)
 
 # Memory tools
 @mcp.tool()
@@ -384,37 +312,19 @@ async def scrape_url(urls: list[str]) -> list[str]:
 @mcp.tool()
 def create_notion_subpage(heading: str, body: str) -> str:
     """Create a new subpage in Notion with a heading and body."""
-    # Load environment variables first
     load_dotenv()
     # Create a new instance to ensure we have the latest token
-    notion_instance = NotionIntegration()
-    return notion_instance.create_subpage(heading, body)
+    return notion.create_subpage(heading, body)
 
-# @mcp.tool()
-# def create_notion_database_page(database_id: str, heading: str, body: str) -> str:
-#     """Create a new page in a Notion database with a heading and body."""
-#     # Load environment variables first
-#     load_dotenv()
-#     # Create a new instance to ensure we have the latest token
-#     notion_instance = NotionIntegration()
-#     return notion_instance.create_database_page(database_id, heading, body)
-
-# @mcp.tool()
-# def update_notion_page_body(page_id: str, heading: str, body: str) -> str:
-#     """Update a Notion page's content with a new heading and body."""
-#     # Load environment variables first
-#     load_dotenv()
-#     # Create a new instance to ensure we have the latest token
-#     notion_instance = NotionIntegration()
-#     return notion_instance.update_page_body(page_id, heading, body)
+@mcp.tool()
+def read_notion_page(page_id: str):
+    """Read a Notion page's properties and content blocks."""
+    return notion.read_page(page_id)
 
 # Dictionary of available functions mapped by name for cerebras
 available_functions = {
     "get_weather": get_weather,
-    # "update_notion_page": update_notion_page,
     "create_notion_subpage": create_notion_subpage,
-    # "create_notion_database_page": create_notion_database_page,
-    # "update_notion_page_body": update_notion_page_body,
     "send_discord_message": send_discord_message_tool,
     "memory_add": memory_add,
     "memory_list": memory_list,
@@ -422,5 +332,6 @@ available_functions = {
     "memory_changing": memory_changing,
     "web_search_result": web_search_result,
     "web_news_result": web_news_result,
-    "scrape_url": scrape_url
+    "scrape_url": scrape_url,
+    "read_notion_page": read_notion_page
 }

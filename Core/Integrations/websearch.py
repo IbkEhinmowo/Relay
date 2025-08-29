@@ -26,7 +26,7 @@ class Web:
                     
                 },
             ).json()
-            print(response)
+   
             return response
         except Exception as e:
             return {"error": str(e)}

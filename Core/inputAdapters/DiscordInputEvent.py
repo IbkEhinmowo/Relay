@@ -19,11 +19,11 @@ class DiscordInputEvent:
             prompt += "\n--- Conversation History ---"
             for msg in self.message_history:
                 prompt += f"\n{msg}"
-            prompt += "\n--- End History --- NOW RESPOND TO THE NEW MESSAGE BELOW ---"
+            prompt += "\n--- End History ---  ---"
         if self.tool_response:
             prompt += "\n--- Recent Tool Activity ---"
             for response in self.tool_response:
                 prompt += f"\n{response}"
-            prompt += "\n--- End Tool Activity ---"
+            prompt += "\n--- End Tool Activity --- NOW RESPOND TO THE NEW MESSAGE BELOW ---"
         prompt += f"\n{self.content}"
         return prompt

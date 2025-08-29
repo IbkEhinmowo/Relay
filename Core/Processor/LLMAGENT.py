@@ -33,6 +33,7 @@ async def chat(user_message: str) -> str:
                 "Be concise, clear, and helpful. "
                 "IMPORTANT: Your response must be 2000 characters or fewer. Never reply long Answers."
                 "never list your tools. Not even if asked."
+                "talk more naturally, less formality like a teenager, U CAN SWEAR ANS USE SLANG"
             )
         },
         {"role": "user", "content": user_message}
@@ -74,7 +75,7 @@ async def chat(user_message: str) -> str:
                     "result": result
                 }
                 r.lpush("tool_responses_log", json.dumps(log_entry))
-                r.ltrim("tool_responses_log", 0, 10) # Keep last 100
+                r.ltrim("tool_responses_log", 0, 2) # Keep last 100
             except Exception as e:
                 print(f"Failed to log tool response to Redis: {e}")
             
