@@ -116,9 +116,9 @@ async def ask(ctx):
             # Store bot's reply in Redis
             chat_redis = redis.Redis(host='localhost', port=6379, db=1)
             redis_key = f"channel:{ctx.channel.id}:history"
-            bot_msg_text = json.dumps({"username": "Relay", "content": result})
+            bot_msg_text = f"BOT - Relay: {result}"
             chat_redis.rpush(redis_key, bot_msg_text)
-            chat_redis.ltrim(redis_key, -20, -1)
+            chat_redis.ltrim(redis_key, -25, -1)
             chat_redis.expire(redis_key, 1200)
     except asyncio.TimeoutError:
         async with ctx.typing():
@@ -135,7 +135,7 @@ async def on_message(message):
     chat_redis = redis.Redis(host='localhost', port=6379, db=1)
     channel_id = str(message.channel.id)
     # Store both username and message content
-    msg_text = json.dumps({"username": message.author.display_name, "content": message.content})
+    msg_text = f"username: {message.author.display_name}: {message.content}"
     redis_key = f"channel:{channel_id}:history"
     # Add message to channel's history (right push)
     chat_redis.rpush(redis_key, msg_text)
@@ -156,18 +156,26 @@ async def on_message(message):
             # Decode bytes to str and format as "username: content"
             message_history = []
             for h in history:
-                try:
-                    msg_obj = json.loads(h.decode('utf-8'))
-                    formatted = f"{msg_obj.get('username', 'Unknown')}: {msg_obj.get('content', '')}"
-                except Exception:
-                    formatted = h.decode('utf-8')
-                message_history.append(formatted)
+                message_history.append(h.decode('utf-8'))
+
+            # Fetch recent tool responses from Redis (db=2)
+            tool_responses = []
+            try:
+                tool_redis = redis.Redis(host='localhost', port=6379, db=2)
+                # Fetch last 5 tool responses
+                recent_responses = tool_redis.lrange("tool_responses_log", 0, 4)
+                for response in recent_responses:
+                    tool_responses.append(response.decode('utf-8'))
+            except Exception as e:
+                print(f"Failed to get tool responses from Redis: {e}")
+
             event = DiscordInputEvent(
                 user_id=str(message.author.id),
                 content=message.content,
                 username=message.author.display_name,
                 quoted_content=quoted_content,
-                message_history=message_history
+                message_history=message_history,
+                tool_response=tool_responses  # Pass the list of responses
             )
             
             try:
@@ -175,7 +183,7 @@ async def on_message(message):
                 result = await llmagent_process(event.to_prompt())
                 await message.channel.send(result)
                 # Store bot's reply in Redis
-                bot_msg_text = json.dumps({"username": "Relay", "content": result})
+                bot_msg_text = f"Relay: {result}"
                 chat_redis.rpush(redis_key, bot_msg_text)
                 chat_redis.ltrim(redis_key, -20, -1)
                 chat_redis.expire(redis_key, 1200)

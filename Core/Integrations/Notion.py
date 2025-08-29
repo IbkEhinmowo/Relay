@@ -40,6 +40,15 @@ class NotionIntegration:
         self.notion.pages.update(page_id=page_id, archived=True)
         return f"Page {page_id} archived (deleted)."
     
+    def read_page(self, page_id: str):
+        """Read a Notion page's properties and content blocks."""
+        page = self.notion.pages.retrieve(page_id=page_id)
+        blocks = self.notion.blocks.children.list(block_id=page_id)
+        return {
+            "page": page,
+            "blocks": blocks
+        }
+    
 
     # def create_database_page(self, database_id: str, heading: str, body: str):
     #     """Create a new page in a database (table) with a heading and body."""

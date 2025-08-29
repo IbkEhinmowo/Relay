@@ -22,7 +22,7 @@ class Web:
                     "q": query,
                     "offset": "1",
                     "summary": "true",
-                    "count": "10"
+                    "count": "5"
                     
                 },
             ).json()
@@ -44,7 +44,7 @@ class Web:
                     "q": query,
                     "offset": "1",
                     "summary": "true",
-                    "count": "10"
+                    "count": "6"
                 },
             ).json()
             return response
