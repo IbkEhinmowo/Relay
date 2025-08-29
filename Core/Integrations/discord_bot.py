@@ -135,7 +135,7 @@ async def on_message(message):
     chat_redis = redis.Redis(host='localhost', port=6379, db=1)
     channel_id = str(message.channel.id)
     # Store both username and message content
-    msg_text = f"username: {message.author.display_name}: {message.content}"
+    msg_text = f"username: {message.author.display_name} with user_id: {message.author.id} says {message.content}"
     redis_key = f"channel:{channel_id}:history"
     # Add message to channel's history (right push)
     chat_redis.rpush(redis_key, msg_text)
