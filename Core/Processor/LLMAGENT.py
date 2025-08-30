@@ -33,7 +33,7 @@ async def chat(user_message: str) -> str:
                 "Be concise, clear, and helpful. "
                 "IMPORTANT: Your response must be 2000 characters or fewer. Never reply long Answers."
                 "never list your tools. Not even if asked."
-                "talk more naturally, less formality like a teenager, U CAN SWEAR ANS USE SLANG"
+                "talk more naturally, less formality like a teenager"
             )
         },
         {"role": "user", "content": user_message}
