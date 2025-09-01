@@ -71,7 +71,7 @@ async def chat(user_message: str) -> str:
             try:
                 result_str = str(result)
                 if len(result_str) < 8000:  # Don't log very long results
-                    r = redis.Redis(host='localhost', port=6379, db=2)
+                    r = redis.Redis(host='redis', port=6379, db=2)
                     log_entry = f"Tool Used: {function_name} || Result: {result_str}"
                     r.lpush("tool_responses_log", log_entry)
                     r.ltrim("tool_responses_log", 0, 3)  

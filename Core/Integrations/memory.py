@@ -4,7 +4,7 @@ class Memory:
     def __init__(self, user_id):
         self.user_id = user_id
         self.key = f"memory:user:{user_id}"
-        self.r = redis.Redis(host='localhost', port=6379, db=0)
+        self.r = redis.Redis(host='redis', port=6379, db=0)
 
     def add(self, content):
         self.r.rpush(self.key, content)

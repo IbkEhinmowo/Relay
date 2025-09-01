@@ -284,7 +284,7 @@ def send_discord_message_tool(message: str, from_discord: bool = False) -> str:
     try:
         import redis
         import json
-        r = redis.Redis(host='localhost', port=6379, db=0)
+        r = redis.Redis(host='redis', port=6379, db=0)
         payload = {"content": message}
         r.lpush("discord_queue:default", json.dumps(payload))
         return "Message enqueued to discord_queue:default."
