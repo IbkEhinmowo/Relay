@@ -244,7 +244,7 @@ tools = [
                 "type": "object",
                 "properties": {
                     "name": {"type": "string", "description": "A unique name for the task."},
-                    "prompt": {"type": "string", "description": "The prompt to be processed by the LLM."},
+                    "arg": {"type": "string", "description": "The prompt to be processed by the LLM."},
                     "minute": {"type": "string", "description": "Cron expression for minute.", "default": "*"},
                     "hour": {"type": "string", "description": "Cron expression for hour.", "default": "*"},
                     "day_of_week": {"type": "string", "description": "Cron expression for day of the week.", "default": "*"},
@@ -252,7 +252,7 @@ tools = [
                     "month_of_year": {"type": "string", "description": "Cron expression for month of the year.", "default": "*"},
                     "one_off": {"type": "boolean", "description": "If true, the task will run only once and then be removed.", "default": False}
                 },
-                "required": ["name", "prompt"]
+                "required": ["name", "arg"]
             }
         }
     },
@@ -381,11 +381,11 @@ def list_scheduled_tasks() -> list:
     return list_tasks()
 
 @mcp.tool()
-def schedule_llm_cron_task(name: str, prompt: str, arg: str, minute: str = '*', hour: str = '*', day_of_week: str = '*', day_of_month: str = '*', month_of_year: str = '*', one_off: bool = False) -> str:
+def schedule_llm_cron_task(name: str, arg: str, minute: str = '*', hour: str = '*', day_of_week: str = '*', day_of_month: str = '*', month_of_year: str = '*', one_off: bool = False) -> str:
     """Schedules a cron-style task for the LLM agent with a custom argument and one-off option."""
     task_path = 'Core.Processor.LLMAGENT.llmagent_process'
     add_cron_task.delay(name, task_path, arg, minute, hour, day_of_week, day_of_month, month_of_year, one_off)
-    return f"Cron task '{name}' scheduled with arg: '{arg}', prompt: '{prompt}', one_off: {one_off}"
+    return f"Cron task '{name}' scheduled with prompt: '{arg}', one_off: {one_off}"
 
 @mcp.tool()
 def remove_scheduled_task(name: str) -> str:

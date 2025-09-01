@@ -10,10 +10,10 @@ app = Celery('Schedular',
              broker='redis://localhost:6379/5',
              backend='redis://localhost:6379/7',
              redbeat_redis_url='redis://localhost:6379/6',
-             include=['Core.Processor.LLMAGENT'])
+             include=['Core.Processor.LLMAGENT', 'Core.Integrations.Schedular'])
 
 # Tell Celery to use the RedBeat scheduler
-app.autodiscover_tasks(packages=['Core.Processor'], related_name='tasks')
+app.autodiscover_tasks(packages=['Core.Processor', 'Core.Integrations'], related_name='tasks')
 
 app.conf.beat_scheduler = 'redbeat.RedBeatScheduler'
 app.conf.beat_max_loop_interval = 5  # Check for new tasks every 5 seconds
@@ -133,6 +133,7 @@ def remove_all_tasks():
 
 
 # List all scheduled RedBeat tasks
+@app.task
 def list_tasks():
     """
     List all scheduled RedBeat periodic tasks.

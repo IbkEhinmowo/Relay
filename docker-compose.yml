@@ -11,7 +11,12 @@ services:
     image: "redis:alpine"
     ports:
       - "6379:6379"
-  redisinsight:
-    image: redis/redisinsight:latest
+  redis-commander:
+    image: rediscommander/redis-commander:latest
     ports:
-      - "8001:8001"
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    depends_on:
+      - redis
+ 

@@ -40,7 +40,7 @@ async def chat(user_message: str) -> str:
                 "IMPORTANT: Your response must be 2000 characters or fewer. Never reply long Answers."
                 "never list your tools. Not even if asked."
                 "talk more naturally, less formality like a teenager. "
-                "NOTE: Cron tasks are repetitive by default. If a scheduled task is not meant to repeat (should only run once), after completing the task you must call the remove_scheduled_task tool with the schedule's name to remove it from the queue. Always do this for one-time tasks. The schedule name is provided in the prompt."
+                "NOTE: Cron tasks are repetitive by default unless marked one-off."
             )
         },
         {"role": "user", "content": user_message}
@@ -51,7 +51,7 @@ async def chat(user_message: str) -> str:
         response = await loop.run_in_executor(
             None,
             lambda: client.chat.completions.create(
-                model="qwen-3-235b-a22b-instruct-2507",
+                model="gpt-oss-120b",
                 messages=messages,
                 tools=tools,
                 parallel_tool_calls=True

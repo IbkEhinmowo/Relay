@@ -26,10 +26,20 @@ def remove_task(name):
 # --- NEW FUNCTION ---
 def list_tasks():
     print("Listing scheduled tasks...")
-    tasks = _list_tasks()
-    print("Scheduled tasks:")
-    for task in tasks:
-        print(task)
+    try:
+        result = _list_tasks.delay()
+        tasks = result.get(timeout=30)
+        print("Scheduled tasks:")
+        for task in tasks:
+            print(task)
+    except Exception as e:
+        print(f"Error calling remote task: {e}")
+        print("Trying direct call...")
+        # Try calling the task directly
+        tasks = _list_tasks()
+        print("Scheduled tasks:")
+        for task in tasks:
+            print(task)
 
 
 # --- NEW FUNCTION ---
@@ -42,7 +52,7 @@ def remove_all_tasks():
 
 if __name__ == '__main__':
    list_tasks()
-   remove_all_tasks()
+
 
     # Add a new task by sending a request to the running Celery worker
     # add_task(

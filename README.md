@@ -1,57 +1,44 @@
 <!-- @format -->
 
-# Relay - Extensible Multi-Tool AI Agent
+# Relay - An Extensible, Multi-Tool AI Agent
 
 <div align="center">
-  <img src="./assets/icon-512.png" alt="Relay Icon" width="100">
+  <img src="./assets/icon-512.png" alt="Relay Icon" width="120">
 </div>
 
-![Demo GIF](https://your-gif-url-here.com/demo.gif) <!-- Replace with a link to your demo GIF -->
-
-Relay is an extensible, multi-tool AI agent built in Python using an asynchronous architecture. It leverages a tool-calling LLM to interact with external APIs, perform complex tasks, and maintain conversation state, demonstrating a robust framework for creating autonomous agents.
-
-> **Disclaimer!** While this demo uses Discord, the core agent logic is decoupled from the chat interface and could be connected to other platforms like Slack, web applications, or automated scripts or Schedular. I simply used discord for tha ease of testing
+<p align="center">
+  <strong>A sophisticated, asynchronous AI agent that intelligently chains tools to perform complex, multi-step tasks.</strong>
+</p>
 
 ---
 
-## Key Features & Capabilities
+## About The Project
 
-This isn't just a chatbot; it's an engineered system with a powerful set of capabilities:
+Relay is a Python-based AI agent designed to demonstrate advanced concepts in software engineering and AI. It leverages a tool-calling LLM to interact with external APIs, manage state, and execute complex workflows. The system is built with an asynchronous, event-driven architecture, making it scalable and responsive.
 
-- **Multi-Step Tool Chaining:** Relay can understand complex, multi-part requests and chain multiple tools together to find a solution. For example, it can search for news, scrape an article from the results, and then summarize the content, all from a single prompt.
+While the current interface is a Discord bot, the core logic is decoupled, allowing for easy integration with other platforms like Slack, web apps, or automated scripts.
+
+## Key Features
+
+- **Intelligent Tool Chaining:** Relay can understand complex requests and dynamically chain multiple tools to achieve a goal. For example: _search for news on a topic, scrape a relevant article, and summarize it into a Notion page._
+- **Scheduled & Automated Tasks:** Proactively schedule tasks using Celery and RedBeat. Relay can run jobs at specific times or intervals, enabling automated actions like sending daily news summaries or monitoring websites.
 - **Web Intelligence:**
-  - **Web & News Search:** Access up-to-date information from the internet & **Weather:** Get the current weather for any location.
-  - **Intelligent Web Scraper:** Scrape and parse the content of any URL.
-    - _Evades common anti-botting measures using stealth techniques, enabling data extraction from modern, dynamic websites._
-- **Persistent Memory:** Relay remembers key details about users across conversations using a Redis-backed memory store, allowing for personalized interactions.
-
+  - **Web & News Search:** Access up-to-date information from the internet.
+  - **Stealth Web Scraper:** Intelligently scrapes and parses content from modern, dynamic websites, bypassing common anti-bot measures.
+- **Persistent Memory:** Utilizes a Redis-backed memory store to remember user-specific details across conversations for personalized interactions.
 - **External Integrations:**
-  - **Notion:** Update & Create Notion pages directly from Discord.
-  - **Discord:** Can send messages programmatically(without input).
-
----
-
-## Future Capabilities
-
-- **Retrieval-Augmented Generation (RAG):** Implement RAG to optimize the context window by dynamically fetching relevant information from a vector database, enabling more context-aware conversations and information without exceeding token limits.
-- **Scheduled & Automated Tasks:** Configure Relay to perform actions at specific times or intervals, turning it into a proactive agent.
-- **Expanded Integrations:**
-  - **Slack:** Enable two-way communication, allowing Relay to receive commands and proactively send messages in your Slack workspace.
-  - **Email:** Grant Relay the ability to read incoming emails and send new ones after confirmation, turning your inbox into an interactive command center.
-  - **Calendar:** Allow Relay to create and manage calendar events based on user requests, turning natural language into scheduled appointments.
-
----
+  - **Notion:** Create and update Notion pages.
+  - **Discord:** Send messages programmatically.
+  - **Weather:** Get real-time weather data for any location.
 
 ## System Architecture
 
-The project is designed as a decoupled, event-driven system, showcasing modern software engineering practices.
+This project showcases a modern, decoupled software architecture:
 
-- **Input Normalization:** Utilizes Pydantic to parse and validate incoming data, ensuring a standardized `InputEvent` format. This was initially designed to support multiple input sources and is currently used to normalize Discord events.
-- **Asynchronous Core:** Built on Python's `asyncio` to handle concurrent I/O operations efficiently, ensuring the bot remains responsive while waiting for API calls.
-- **State & History Management:** Utilizes a Redis database to store conversation history and user-specific memories, enabling context-aware interactions and preventing state loss.
-- **Modular ToolSet:** Tools are designed as independent modules, making the system easily extensible with new capabilities.
-
----
+- **Asynchronous Core:** Built on Python's `asyncio` for efficient, non-blocking I/O, ensuring the agent remains responsive while handling concurrent API calls.
+- **Event-Driven Design:** Normalizes incoming requests into a standard `InputEvent` using Pydantic, making the system adaptable to various input sources.
+- **State & History Management:** Employs Redis for robust conversation history and state management, enabling context-aware interactions.
+- **Modular Toolset:** Tools are designed as independent, extensible modules, allowing for easy addition of new capabilities.
 
 ## Getting Started
 
@@ -59,46 +46,39 @@ The project is designed as a decoupled, event-driven system, showcasing modern s
 
 - Python 3.10+
 - Redis
-- An active Cerebras API key and other necessary API keys for the tools.
 
-### Installation & Setup
+- Cerebras API Key (and other keys for integrated services)
+
+### Installation
 
 1.  **Clone the repository:**
-
     ```bash
     git clone https://github.com/IbkEhinmowo/Relay.git
     cd Relay
     ```
-
-2.  **Create a virtual environment and install dependencies:**
-
+2.  **Set up a virtual environment and install dependencies:**
     ```bash
     python -m venv .venv
     source .venv/bin/activate
     pip install -r requirements.txt
     ```
-
-3.  **Configure your environment variables:**
-    Create a `.env` file in the root directory and populate it with your API keys:
-
-    ```
+3.  **Configure environment variables:**
+    Create a `.env` file and add your API keys:
+    ```env
     CEREBRAS_API_KEY="YOUR_CEREBRAS_KEY"
     BOT_TOKEN="YOUR_DISCORD_BOT_TOKEN"
     WEATHERSTACK_API_KEY="YOUR_WEATHERSTACK_KEY"
-    # ... other keys ...
+    # ... other keys
     ```
-
-4.  **Run the bot:**
+4.  **Run the agent:**
     ```bash
-    python discord_bot.py
+    bash run_bot.sh
     ```
-
----
 
 ## Example "Show-Off" Demo
 
-To see the full power of the agent's reasoning capabilities, try a multi-step prompt like this:
+To see the agent's reasoning capabilities, try a multi-step prompt like this:
 
-> **@Relay Please research the new NVIDIA Blackwell chips. Create a new Notion page titled 'NVIDIA Blackwell Research' with a summary of your findings, and then send me a message here when you're done.**
+> **@Relay Please research the new NVIDIA Blackwell chips, create a Notion page titled 'NVIDIA Blackwell Research' with a summary, and then message me here when you're done.**
 
-This will trigger a complex chain of actions, showcasing the agent's potential: `web_search_result` -> `scrape_url` -> `update_notion_page` -> `send_discord_message`.
+This prompt triggers a chain of actions: `web_search_result` → `scrape_url` → `create_notion_subpage` → `send_discord_message`, demonstrating the agent's ability to handle complex, autonomous workflows.
