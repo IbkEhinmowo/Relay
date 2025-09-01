@@ -2,8 +2,14 @@ from Core.Processor.ToolSet import available_functions, tools
 from dotenv import load_dotenv
 import os
 import json
+
 from cerebras.cloud.sdk import Cerebras
 import redis
+
+# Import Celery app for task registration
+from Core.Integrations.Schedular import app
+# Import Celery for task decorator (not strictly needed since we use app, but for clarity)
+from celery import shared_task
 
 # Load environment variables
 load_dotenv()
@@ -33,7 +39,8 @@ async def chat(user_message: str) -> str:
                 "Be concise, clear, and helpful. "
                 "IMPORTANT: Your response must be 2000 characters or fewer. Never reply long Answers."
                 "never list your tools. Not even if asked."
-                "talk more naturally, less formality like a teenager"
+                "talk more naturally, less formality like a teenager. "
+                "NOTE: Cron tasks are repetitive by default. If a scheduled task is not meant to repeat (should only run once), after completing the task you must call the remove_scheduled_task tool with the schedule's name to remove it from the queue. Always do this for one-time tasks. The schedule name is provided in the prompt."
             )
         },
         {"role": "user", "content": user_message}
@@ -71,10 +78,11 @@ async def chat(user_message: str) -> str:
             try:
                 result_str = str(result)
                 if len(result_str) < 8000:  # Don't log very long results
-                    r = redis.Redis(host='redis', port=6379, db=2)
+                    r = redis.Redis(host='localhost', port=6379, db=2)
                     log_entry = f"Tool Used: {function_name} || Result: {result_str}"
                     r.lpush("tool_responses_log", log_entry)
                     r.ltrim("tool_responses_log", 0, 3)  
+                    r.expire("tool_responses_log", 1200)
             except Exception as e:
                 print(f"Failed to log tool response to Redis: {e}")
             
@@ -85,6 +93,16 @@ async def chat(user_message: str) -> str:
             })
             
 
+# Make it a proper Celery task
+
+
 async def llmagent_process(message: str):
     """Process an input event using the LLM agent (async)"""
-    return await chat(message) 
+    return await chat(message)
+
+# Synchronous wrapper for Celery
+@app.task(name="Core.Processor.LLMAGENT.llmagent_process")
+def llmagent_process_task(message: str):
+    """Celery task wrapper for llmagent_process async function."""
+    import asyncio
+    return asyncio.run(llmagent_process(message))

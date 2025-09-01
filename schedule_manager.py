@@ -2,6 +2,8 @@ from Core.Integrations.Schedular import (
     add_periodic_task,
     add_cron_task as _add_cron_task,
     remove_task as _remove_task,
+    list_tasks as _list_tasks,
+    remove_all_tasks as _remove_all_tasks,
 )
 
 def add_task(name, task, interval_seconds, arg):
@@ -21,7 +23,26 @@ def remove_task(name):
     print(f"Sent request to remove task: {name}")
 
 
+# --- NEW FUNCTION ---
+def list_tasks():
+    print("Listing scheduled tasks...")
+    tasks = _list_tasks()
+    print("Scheduled tasks:")
+    for task in tasks:
+        print(task)
+
+
+# --- NEW FUNCTION ---
+def remove_all_tasks():
+    result = _remove_all_tasks.delay()
+    print("Sent request to remove all tasks. Waiting for result...")
+    message = result.get(timeout=30)
+    print(message)
+
+
 if __name__ == '__main__':
+   list_tasks()
+   remove_all_tasks()
 
     # Add a new task by sending a request to the running Celery worker
     # add_task(
@@ -33,4 +54,4 @@ if __name__ == '__main__':
     
     
     # remove_task('dynamic-task-2')
-    
+    # list_tasks()

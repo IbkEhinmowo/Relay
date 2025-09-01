@@ -9,6 +9,7 @@ from mcp.server.fastmcp import FastMCP
 from Core.Integrations.Notion import NotionIntegration
 from Core.Integrations.memory import Memory
 from Core.Integrations.scraper import scrape
+from Core.Integrations.Schedular import add_periodic_task, add_cron_task, remove_task, list_tasks
 
 
 
@@ -232,6 +233,56 @@ tools = [
                 "required": ["page_id"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "schedule_llm_cron_task",
+            "strict": False,
+            "description": "Schedules a cron-style task for the LLM agent.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "A unique name for the task."},
+                    "prompt": {"type": "string", "description": "The prompt to be processed by the LLM."},
+                    "minute": {"type": "string", "description": "Cron expression for minute.", "default": "*"},
+                    "hour": {"type": "string", "description": "Cron expression for hour.", "default": "*"},
+                    "day_of_week": {"type": "string", "description": "Cron expression for day of the week.", "default": "*"},
+                    "day_of_month": {"type": "string", "description": "Cron expression for day of the month.", "default": "*"},
+                    "month_of_year": {"type": "string", "description": "Cron expression for month of the year.", "default": "*"},
+                    "one_off": {"type": "boolean", "description": "If true, the task will run only once and then be removed.", "default": False}
+                },
+                "required": ["name", "prompt"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "remove_scheduled_task",
+            "strict": False,
+            "description": "Removes a scheduled task by its name.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "The name of the task to remove."}
+                },
+                "required": ["name"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "list_scheduled_tasks",
+            "strict": False,
+            "description": "Lists all scheduled tasks.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
     }
 ]
 # Register MCP tools
@@ -284,7 +335,7 @@ def send_discord_message_tool(message: str, from_discord: bool = False) -> str:
     try:
         import redis
         import json
-        r = redis.Redis(host='redis', port=6379, db=0)
+        r = redis.Redis(host='localhost', port=6379, db=0)
         payload = {"content": message}
         r.lpush("discord_queue:default", json.dumps(payload))
         return "Message enqueued to discord_queue:default."
@@ -321,6 +372,27 @@ def read_notion_page(page_id: str):
     """Read a Notion page's properties and content blocks."""
     return notion.read_page(page_id)
 
+# Scheduling tools
+
+# List scheduled tasks tool
+@mcp.tool()
+def list_scheduled_tasks() -> list:
+    """Lists all scheduled tasks."""
+    return list_tasks()
+
+@mcp.tool()
+def schedule_llm_cron_task(name: str, prompt: str, arg: str, minute: str = '*', hour: str = '*', day_of_week: str = '*', day_of_month: str = '*', month_of_year: str = '*', one_off: bool = False) -> str:
+    """Schedules a cron-style task for the LLM agent with a custom argument and one-off option."""
+    task_path = 'Core.Processor.LLMAGENT.llmagent_process'
+    add_cron_task.delay(name, task_path, arg, minute, hour, day_of_week, day_of_month, month_of_year, one_off)
+    return f"Cron task '{name}' scheduled with arg: '{arg}', prompt: '{prompt}', one_off: {one_off}"
+
+@mcp.tool()
+def remove_scheduled_task(name: str) -> str:
+    """Removes a scheduled task by its name."""
+    remove_task.delay(name)
+    return f"Request to remove task '{name}' sent."
+
 # Dictionary of available functions mapped by name for cerebras
 available_functions = {
     "get_weather": get_weather,
@@ -333,5 +405,8 @@ available_functions = {
     "web_search_result": web_search_result,
     "web_news_result": web_news_result,
     "scrape_url": scrape_url,
-    "read_notion_page": read_notion_page
+    "read_notion_page": read_notion_page,
+    "schedule_llm_cron_task": schedule_llm_cron_task,
+    "remove_scheduled_task": remove_scheduled_task
+    ,"list_scheduled_tasks": list_scheduled_tasks
 }

@@ -54,7 +54,7 @@ async def send_discord_message(message: str):
     
 ## Discord QUEUE WORKER FOR SENDING MESSAGES AS A CALLABLE FROM TOOLS
 async def redis_message_worker():
-    r = redis.Redis(host='redis', port=6379, db=0)
+    r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
     await bot.wait_until_ready()
     # print("DEBUG: Redis worker started and waiting for messages...")
     while not bot.is_closed():
@@ -114,7 +114,7 @@ async def ask(ctx):
             result = await llmagent_process(event.to_prompt())
             await ctx.send(result)
             # Store bot's reply in Redis
-            chat_redis = redis.Redis(host='redis', port=6379, db=1)
+            chat_redis = redis.Redis(host='localhost', port=6379, db=1)
             redis_key = f"channel:{ctx.channel.id}:history"
             bot_msg_text = f"BOT - Relay: {result}"
             chat_redis.rpush(redis_key, bot_msg_text)
@@ -132,7 +132,7 @@ async def on_message(message):
         return
 
     # Redis connection for chat context (db=1)
-    chat_redis = redis.Redis(host='redis', port=6379, db=1)
+    chat_redis = redis.Redis(host='localhost', port=6379, db=1)
     channel_id = str(message.channel.id)
     # Store both username and message content
     msg_text = f"username: {message.author.display_name} with user_id: {message.author.id} says {message.content}"
@@ -161,7 +161,7 @@ async def on_message(message):
             # Fetch recent tool responses from Redis (db=2)
             tool_responses = []
             try:
-                tool_redis = redis.Redis(host='redis', port=6379, db=2)
+                tool_redis = redis.Redis(host='localhost', port=6379, db=2)
                 # Fetch last 5 tool responses
                 recent_responses = tool_redis.lrange("tool_responses_log", 0, 4)
                 for response in recent_responses:
