@@ -1,12 +1,12 @@
 # @format
 
 services:
-  # app:
-  #   build: .
-  #   ports:
-  #     - "8000:8000"
-  #   depends_on:
-  #     - redis
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
   redis:
     image: "redis:alpine"
     ports:
@@ -17,6 +17,8 @@ services:
       - "8081:8081"
     environment:
       - REDIS_HOSTS=local:redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
     depends_on:
       - redis
- 

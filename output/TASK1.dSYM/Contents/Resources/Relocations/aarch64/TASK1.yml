@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/mason/Documents/vs files/Relay/output/TASK1'
+relocations:     []
+...

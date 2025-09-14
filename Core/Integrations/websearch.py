@@ -1,4 +1,3 @@
-
 import os
 import requests
 
@@ -26,8 +25,14 @@ class Web:
                     
                 },
             ).json()
-   
-            return response
+
+            results = []
+            if "web" in response and "results" in response["web"]:
+                results.extend(response["web"]["results"])
+            if "videos" in response and "results" in response["videos"]:
+                results.extend(response["videos"]["results"])
+            
+            return results if results else response
         except Exception as e:
             return {"error": str(e)}
 
@@ -44,9 +49,11 @@ class Web:
                     "q": query,
                     "offset": "1",
                     "summary": "true",
-                    "count": "6"
+                    "count": "9"
                 },
             ).json()
+            if "news" in response:
+                return response["news"].get("results", [])
             return response
         except Exception as e:
             return {"error": str(e)}

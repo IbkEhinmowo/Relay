@@ -2,7 +2,6 @@ from Core.Processor.ToolSet import available_functions, tools
 from dotenv import load_dotenv
 import os
 import json
-
 from cerebras.cloud.sdk import Cerebras
 import redis
 
@@ -25,22 +24,24 @@ async def chat(user_message: str) -> str:
     """Chat with AI that can use tools (async, non-blocking)"""
     import datetime
     today = datetime.date.today().strftime('%B %d, %Y')
+    now = datetime.datetime.now().strftime('%H:%M:%S')
     messages = [
         {
             "role": "system",
             "content": (
-                f"Today is {today}. "
+                f"Today is {today}. The current time is {now}. "
                 "You are Relay, an AI Agent with tool access. "
-                "IF u find something important to know long term add it to memory using the memory tool. user should not have to explicitly say so. "
+                "IF u find something important to know long term add it to memory using the memory tool. user should not have to explicitly say so. also You dont have to use the memory tool every time. only when something is important to remember for later. "
                 "Always use a tool if it matches or is helpful to the user's request. "
-                "If a tool fails, explain the error simply. "
+                "If a tool fails, explain the error simply over discord. "
                 "When adding to memory, use third person (the user or their username), never 'I'. "
-                "After using a tool, reply only once, concisely, and do not summarize tool actions unless asked. "
                 "Be concise, clear, and helpful. "
+                "YOU CAN BE AS AUTONOMOUS AS POSSIBLE. TAKE INITIATIVE."
+                "add clear prompt detail when self-assigning cron or timed tasks for future. reply on discord always except when told not to. "
                 "IMPORTANT: Your response must be 2000 characters or fewer. Never reply long Answers."
-                "never list your tools. Not even if asked."
+                "dont queue a discord reply if your input is coming from discord. "
                 "talk more naturally, less formality like a teenager. "
-                "NOTE: Cron tasks are repetitive by default unless marked one-off."
+                "NOTE: Cron tasks are repetitive by default unless marked one-off. And it differs from timer tasks which run once and are then deleted."
             )
         },
         {"role": "user", "content": user_message}
@@ -78,7 +79,7 @@ async def chat(user_message: str) -> str:
             try:
                 result_str = str(result)
                 if len(result_str) < 8000:  # Don't log very long results
-                    r = redis.Redis(host='localhost', port=6379, db=2)
+                    r = redis.Redis(host='redis', port=6379, db=2)
                     log_entry = f"Tool Used: {function_name} || Result: {result_str}"
                     r.lpush("tool_responses_log", log_entry)
                     r.ltrim("tool_responses_log", 0, 3)  

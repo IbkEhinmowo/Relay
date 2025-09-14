@@ -9,7 +9,7 @@ from mcp.server.fastmcp import FastMCP
 from Core.Integrations.Notion import NotionIntegration
 from Core.Integrations.memory import Memory
 from Core.Integrations.scraper import scrape
-from Core.Integrations.Schedular import add_periodic_task, add_cron_task, remove_task, list_tasks
+from Core.Integrations.Schedular import add_periodic_task, add_cron_task, remove_task, list_tasks, add_timer_task
 
 
 
@@ -245,14 +245,31 @@ tools = [
                 "properties": {
                     "name": {"type": "string", "description": "A unique name for the task."},
                     "arg": {"type": "string", "description": "The prompt to be processed by the LLM."},
-                    "minute": {"type": "string", "description": "Cron expression for minute.", "default": "*"},
-                    "hour": {"type": "string", "description": "Cron expression for hour.", "default": "*"},
+                    "minute": {"type": "string", "description": "Cron expression for NUMBER OF minutes.", "default": "*"},
+                    "hour": {"type": "string", "description": "Cron expression for NUMBER OF hours.", "default": "*"},
                     "day_of_week": {"type": "string", "description": "Cron expression for day of the week.", "default": "*"},
                     "day_of_month": {"type": "string", "description": "Cron expression for day of the month.", "default": "*"},
                     "month_of_year": {"type": "string", "description": "Cron expression for month of the year.", "default": "*"},
                     "one_off": {"type": "boolean", "description": "If true, the task will run only once and then be removed.", "default": False}
                 },
                 "required": ["name", "arg"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "schedule_llm_timer_task",
+            "strict": False,
+            "description": "Schedules a one-off task to run after a specific number of seconds (a timer). Use for relative reminders like 'in 5 minutes'.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "A unique name for the task."},
+                    "arg": {"type": "string", "description": "The prompt to be processed by the LLM."},
+                    "seconds": {"type": "integer", "description": "The number of seconds to wait before running the task."}
+                },
+                "required": ["name", "arg", "seconds"]
             }
         }
     },
@@ -335,7 +352,7 @@ def send_discord_message_tool(message: str, from_discord: bool = False) -> str:
     try:
         import redis
         import json
-        r = redis.Redis(host='localhost', port=6379, db=0)
+        r = redis.Redis(host='redis', port=6379, db=0)
         payload = {"content": message}
         r.lpush("discord_queue:default", json.dumps(payload))
         return "Message enqueued to discord_queue:default."
@@ -388,6 +405,14 @@ def schedule_llm_cron_task(name: str, arg: str, minute: str = '*', hour: str = '
     return f"Cron task '{name}' scheduled with prompt: '{arg}', one_off: {one_off}"
 
 @mcp.tool()
+def schedule_llm_timer_task(name: str, arg: str, seconds: int) -> str:
+    """Schedules a timer-based task for the LLM agent."""
+    task_path = 'Core.Processor.LLMAGENT.llmagent_process'
+    # Note the arguments are passed as a list
+    add_timer_task.delay(name=name, task=task_path, seconds=seconds, args=[arg])
+    return f"Timer task '{name}' scheduled to run in {seconds} seconds with prompt: '{arg}'"
+
+@mcp.tool()
 def remove_scheduled_task(name: str) -> str:
     """Removes a scheduled task by its name."""
     remove_task.delay(name)
@@ -407,6 +432,7 @@ available_functions = {
     "scrape_url": scrape_url,
     "read_notion_page": read_notion_page,
     "schedule_llm_cron_task": schedule_llm_cron_task,
-    "remove_scheduled_task": remove_scheduled_task
-    ,"list_scheduled_tasks": list_scheduled_tasks
+    "schedule_llm_timer_task": schedule_llm_timer_task,
+    "remove_scheduled_task": remove_scheduled_task,
+    "list_scheduled_tasks": list_scheduled_tasks
 }

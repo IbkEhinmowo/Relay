@@ -1,84 +1,68 @@
 <!-- @format -->
 
-# Relay - An Extensible, Multi-Tool AI Agent
+# Relay: An Extensible AI Workflow Agent
 
 <div align="center">
   <img src="./assets/icon-512.png" alt="Relay Icon" width="120">
 </div>
 
 <p align="center">
-  <strong>A sophisticated, asynchronous AI agent that intelligently chains tools to perform complex, multi-step tasks.</strong>
+  <strong>An extensible workflow agent implemented as a Discord bot using Python, FastAPI, Redis, and Celery with RedBeat.</strong>
 </p>
 
 ---
 
-## About The Project
+## Overview
 
-Relay is a Python-based AI agent designed to demonstrate advanced concepts in software engineering and AI. It leverages a tool-calling LLM to interact with external APIs, manage state, and execute complex workflows. The system is built with an asynchronous, event-driven architecture, making it scalable and responsive.
+Relay is an LLM-driven autonomous scheduling agent that demonstrates how to build complex, multi-step automations. It can queue tasks for itself, trigger delayed actions, and run recurring workflows without hardcoded schedules.
 
-While the current interface is a Discord bot, the core logic is decoupled, allowing for easy integration with other platforms like Slack, web apps, or automated scripts.
+The project showcases advanced orchestration across various services, including:
+
+- **Web Research & Summarization:** Performing web searches, dynamically scraping content with Playwright, and summarizing the findings.
+- **Dynamic Content Creation:** Creating and updating documents in Notion.
+- **Notifications:** Sending alerts and messages through Discord.
+
+Its Redis-centric architecture manages user-bound memory, message queues, and state, enabling context-aware workflows for multiple concurrent users. The web scraping module is designed with resilience to dynamic HTML and bot detection, ensuring reliable data extraction.
 
 ## Key Features
 
-- **Intelligent Tool Chaining:** Relay can understand complex requests and dynamically chain multiple tools to achieve a goal. For example: _search for news on a topic, scrape a relevant article, and summarize it into a Notion page._
-- **Scheduled & Automated Tasks:** Proactively schedule tasks using Celery and RedBeat. Relay can run jobs at specific times or intervals, enabling automated actions like sending daily news summaries or monitoring websites.
-- **Web Intelligence:**
-  - **Web & News Search:** Access up-to-date information from the internet.
-  - **Stealth Web Scraper:** Intelligently scrapes and parses content from modern, dynamic websites, bypassing common anti-bot measures.
-- **Persistent Memory:** Utilizes a Redis-backed memory store to remember user-specific details across conversations for personalized interactions.
-- **External Integrations:**
-  - **Notion:** Create and update Notion pages.
-  - **Discord:** Send messages programmatically.
-  - **Weather:** Get real-time weather data for any location.
+- **LLM-Driven Autonomous Scheduling:** Relay can schedule and execute tasks dynamically. For example, it can set a reminder to research a topic and then create a report at a specified time.
+- **Multi-Step Automation:** Chains together multiple tools to complete complex workflows. A single prompt can trigger a sequence of actions like searching the web, scraping a site, summarizing content, and saving it to Notion.
+- **Resilient Web Scraping:** The scraping module uses Playwright to handle dynamic websites and is designed to be resilient to anti-bot measures.
+- **Redis-Centric Architecture:** Redis is used for:
+  - **User-Bound Memory:** Maintaining context for individual users across sessions.
+  - **Message Queues:** Managing tasks with Celery.
+  - **State Management:** Tracking the state of ongoing workflows.
+- **Extensible Toolset:** The agent's capabilities can be easily extended by adding new tools.
 
 ## System Architecture
 
-This project showcases a modern, decoupled software architecture:
-
-- **Asynchronous Core:** Built on Python's `asyncio` for efficient, non-blocking I/O, ensuring the agent remains responsive while handling concurrent API calls.
-- **Event-Driven Design:** Normalizes incoming requests into a standard `InputEvent` using Pydantic, making the system adaptable to various input sources.
-- **State & History Management:** Employs Redis for robust conversation history and state management, enabling context-aware interactions.
-- **Modular Toolset:** Tools are designed as independent, extensible modules, allowing for easy addition of new capabilities.
+- **Discord Bot Interface:** The primary interface for interacting with the agent for simplicity.
+- **Python Backend:** The core logic is built with Python.
+- **Redis:** Used as a message broker, for caching, and for storing persistent data.
+- **Celery with RedBeat:** Manages and schedules background tasks, enabling recurring and delayed jobs.
 
 ## Getting Started
 
 ### Prerequisites
 
 - Python 3.10+
+- Docker and Docker Compose
 - Redis
+- API keys for any integrated services (e.g., Notion, Google Search).
 
-- Cerebras API Key (and other keys for integrated services)
+## Example Usage
 
-### Installation
+Here’s an example of a complex, multi-step task you can give Relay:
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/IbkEhinmowo/Relay.git
-    cd Relay
-    ```
-2.  **Set up a virtual environment and install dependencies:**
-    ```bash
-    python -m venv .venv
-    source .venv/bin/activate
-    pip install -r requirements.txt
-    ```
-3.  **Configure environment variables:**
-    Create a `.env` file and add your API keys:
-    ```env
-    CEREBRAS_API_KEY="YOUR_CEREBRAS_KEY"
-    BOT_TOKEN="YOUR_DISCORD_BOT_TOKEN"
-    WEATHERSTACK_API_KEY="YOUR_WEATHERSTACK_KEY"
-    # ... other keys
-    ```
-4.  **Run the agent:**
-    ```bash
-    bash run_bot.sh
-    ```
+> **@Relay Tomorrow at 10 AM, find the latest news about generative AI, scrape the top 3 articles, summarize them, and create a new page in my Notion database with the summary.**
 
-## Example "Show-Off" Demo
+This single command will cause Relay to:
 
-To see the agent's reasoning capabilities, try a multi-step prompt like this:
+1.  Schedule a task for 10 AM the next day.
+2.  At the scheduled time, it will search the web for "latest news about generative AI".
+3.  It will then scrape the content of the top three articles found.
+4.  The scraped content will be summarized.
+5.  Finally, a new page will be created in Notion with the summarized articles.
 
-> **@Relay Please research the new NVIDIA Blackwell chips, create a Notion page titled 'NVIDIA Blackwell Research' with a summary, and then message me here when you're done.**
-
-This prompt triggers a chain of actions: `web_search_result` → `scrape_url` → `create_notion_subpage` → `send_discord_message`, demonstrating the agent's ability to handle complex, autonomous workflows.
+This demonstrates the power of combining autonomous scheduling with a versatile toolset to create sophisticated automations.

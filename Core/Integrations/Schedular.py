@@ -7,9 +7,9 @@ from datetime import timedelta
 # The broker argument specifies the url of the message broker (Redis in tis case)
 # The redbeat_redis_url is for the RedBeat scheduler
 app = Celery('Schedular', 
-             broker='redis://localhost:6379/5',
-             backend='redis://localhost:6379/7',
-             redbeat_redis_url='redis://localhost:6379/6',
+             broker='redis://redis:6379/5',
+             backend='redis://redis:6379/7',
+             redbeat_redis_url='redis://redis:6379/6',
              include=['Core.Processor.LLMAGENT', 'Core.Integrations.Schedular'])
 
 # Tell Celery to use the RedBeat scheduler
@@ -130,6 +130,47 @@ def remove_all_tasks():
             print(f"Error removing task from key {key}: {e}")
     print(f"Removed {count} tasks.")
     return f"Removed {count} tasks."
+
+
+@app.task
+def add_timer_task(name: str, task: str, seconds: int, args: list, one_off: bool = True):
+    """
+    Schedules a task to run once after a specified number of seconds.
+    """
+    # This uses Celery's built-in countdown feature, which is perfect for timers.
+    # The task is sent to the broker with an ETA.
+    # We also add a RedBeat entry to keep track of it, though the actual delay
+    # is handled by the broker/worker.
+    from redbeat import RedBeatSchedulerEntry
+    from celery.schedules import schedule
+    import datetime
+
+    task_to_schedule = task
+    args_for_task = args
+
+    if one_off:
+        # Wrap it to ensure it gets removed from RedBeat's schedule view
+        task_to_schedule = 'Core.Integrations.Schedular.run_once_and_remove'
+        args_for_task = [name, task] + args
+
+    # Schedule it to run with a delay
+    app.send_task(task_to_schedule, args=args_for_task, countdown=seconds)
+    print(f"Timer task '{name}' scheduled to run in {seconds} seconds.")
+
+    # We'll add a disabled entry to RedBeat just so it's visible in the list of tasks.
+    # It won't be run by the beat scheduler.
+    try:
+        entry = RedBeatSchedulerEntry(
+            name=name,
+            task=task_to_schedule,
+            schedule=schedule(run_every=datetime.timedelta(seconds=seconds)),
+            args=args_for_task,
+            enabled=False,  # Disabled so beat doesn't run it
+            app=app
+        )
+        entry.save()
+    except Exception as e:
+        print(f"Could not save disabled RedBeat entry for timer '{name}': {e}")
 
 
 # List all scheduled RedBeat tasks
