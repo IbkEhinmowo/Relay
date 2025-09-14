@@ -77,14 +77,6 @@ async def scrape(urls: list[str]) -> list[str]:
             has_touch=False,
         )
         
-        # Enable JavaScript and cookies
-        await context.add_cookies([{
-            'name': 'session_consent',
-            'value': 'true',
-            'domain': '.washingtonpost.com',
-            'path': '/',
-        }])
-        
         results = []
         for url in urls:
             try:
