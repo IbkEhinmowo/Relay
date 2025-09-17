@@ -118,7 +118,7 @@ tools = [
         "function": {
             "name": "send_discord_message",
             "strict": False,
-            "description": "Send a message to a Discord channel ",
+            "description": "Send a message to a Discord channel when asked or to notify. not when the prompt is from Discord. ",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -401,6 +401,8 @@ def list_scheduled_tasks() -> list:
 def schedule_llm_cron_task(name: str, arg: str, minute: str = '*', hour: str = '*', day_of_week: str = '*', day_of_month: str = '*', month_of_year: str = '*', one_off: bool = False) -> str:
     """Schedules a cron-style task for the LLM agent with a custom argument and one-off option."""
     task_path = 'Core.Processor.LLMAGENT.llmagent_process'
+    # Add context to the prompt
+    contextual_arg = f"This is a scheduled task. It is now time to do the following: {arg}. Your reply for this task should be sent to Discord, unless the original request stated otherwise."
     add_cron_task.delay(name, task_path, arg, minute, hour, day_of_week, day_of_month, month_of_year, one_off)
     return f"Cron task '{name}' scheduled with prompt: '{arg}', one_off: {one_off}"
 
@@ -408,6 +410,8 @@ def schedule_llm_cron_task(name: str, arg: str, minute: str = '*', hour: str = '
 def schedule_llm_timer_task(name: str, arg: str, seconds: int) -> str:
     """Schedules a timer-based task for the LLM agent."""
     task_path = 'Core.Processor.LLMAGENT.llmagent_process'
+    # Add context to the prompt
+    contextual_arg = f"This is a scheduled task. It is now time to do the following: {arg}. Your reply for this task should be sent to Discord, unless the original request stated otherwise."
     # Note the arguments are passed as a list
     add_timer_task.delay(name=name, task=task_path, seconds=seconds, args=[arg])
     return f"Timer task '{name}' scheduled to run in {seconds} seconds with prompt: '{arg}'"

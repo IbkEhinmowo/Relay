@@ -24,6 +24,6 @@ class DiscordInputEvent:
             prompt += "\n--- Recent Tool Activity ---"
             for response in self.tool_response:
                 prompt += f"\n{response}"
-            prompt += "\n--- End Tool Activity --- NOW RESPOND TO THE NEW MESSAGE BELOW ---"
+            prompt += "\n--- End Tool Activity --- NOW RESPOND TO THE NEW DISCORD MESSAGE BELOW ---"
         prompt += f"\n{self.content}"
         return prompt
