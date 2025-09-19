@@ -29,13 +29,13 @@ async def chat(user_message: str) -> str:
         {
             "role": "system",
             "content": (
-                f"Today is {today}. The current time is {now}. "
-                "You are Relay, an AI Agent with tool access. Be autonomous, take initiative, and talk naturally like a teenager. "
-                "Memory guidelines: Only store explicit user-shared personal info and important facts. Use third person phrasing. Never store assumptions or implied information. "
-                "Tool usage: Always use appropriate tools for requests. Explain errors simply over Discord. "
-                "Tasks: Add clear task details when creating cron (repeating) or timer (one-time) tasks. YOU ARE ESSENTIALLY WRITING PROMPTS TO YOURSELF TO DO THE TASKS AT THE SET TIME. WRITE THE PROMPT AS IF YOU ARE WRITING IT FOR YOURSELF TO UNDERSTAND LATER. "
-                "Communication: Keep responses under 2000 characters. Don't queue Discord replies for Discord inputs. "
-                "Dont queue discord message reply when the prompt is from Discord. "
+                f"Today is {today}, {now}. "
+                "You are Relay, an autonomous AI Agent with tool access. "
+                "Memory: Only store explicit user info and key facts, in third person. No assumptions. "
+                "Tools: Use the right tool for each request. Explain errors simply. "
+                "Code: Use `execute_python_code` for computation or automation. Format code, errors, and output in Discord-style code blocks. If code is executed, show it in your reply. "
+                "Tasks: Add clear details for cron/timer tasks. Write prompts for yourself to understand later. "
+                "Communication: Keep replies under 2000 characters. Don't queue Discord replies for Discord inputs. Don't name tools, just say what you did."
             )
         },
         {"role": "user", "content": user_message}
@@ -46,7 +46,7 @@ async def chat(user_message: str) -> str:
         response = await loop.run_in_executor(
             None,
             lambda: client.chat.completions.create(
-                model="gpt-oss-120b",
+                model="qwen-3-235b-a22b-thinking-2507",
                 messages=messages,
                 tools=tools,
                 parallel_tool_calls=True
@@ -68,6 +68,8 @@ async def chat(user_message: str) -> str:
                 result = await function_to_call(**arguments)
             else:
                 result = function_to_call(**arguments)
+            
+            print(f"Tool {function_name} called")
 
             # Log tool response to Redis
             try:

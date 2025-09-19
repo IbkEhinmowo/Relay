@@ -10,6 +10,7 @@ from Core.Integrations.Notion import NotionIntegration
 from Core.Integrations.memory import Memory
 from Core.Integrations.scraper import scrape
 from Core.Integrations.Schedular import add_periodic_task, add_cron_task, remove_task, list_tasks, add_timer_task
+from Core.Integrations.exec_code import exec_code
 
 
 
@@ -300,6 +301,24 @@ tools = [
                 "required": []
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "execute_python_code",
+            "strict": False,
+            "description": "Execute Python code in a restricted environment and return the output.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "description": "The Python code to execute."
+                    }
+                },
+                "required": ["code"]
+            }
+        }
     }
 ]
 # Register MCP tools
@@ -422,6 +441,11 @@ def remove_scheduled_task(name: str) -> str:
     remove_task.delay(name)
     return f"Request to remove task '{name}' sent."
 
+@mcp.tool()
+def execute_python_code(code: str) -> str:
+    """Execute Python code and return output or error."""
+    return exec_code(code)
+
 # Dictionary of available functions mapped by name for cerebras
 available_functions = {
     "get_weather": get_weather,
@@ -438,5 +462,6 @@ available_functions = {
     "schedule_llm_cron_task": schedule_llm_cron_task,
     "schedule_llm_timer_task": schedule_llm_timer_task,
     "remove_scheduled_task": remove_scheduled_task,
-    "list_scheduled_tasks": list_scheduled_tasks
+    "list_scheduled_tasks": list_scheduled_tasks,
+    "execute_python_code": execute_python_code
 }

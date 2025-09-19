@@ -21,7 +21,7 @@ class Web:
                     "q": query,
                     "offset": "1",
                     "summary": "true",
-                    "count": "5"
+                    "count": "3"
                     
                 },
             ).json()

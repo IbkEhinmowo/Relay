@@ -14,26 +14,25 @@
 
 ## Overview
 
-Relay is an LLM-driven autonomous scheduling agent that demonstrates how to build complex, multi-step automations. It can queue tasks for itself, trigger delayed actions, and run recurring workflows without hardcoded schedules.
+Relay is an LLM-driven autonomous agent that makes real-time decisions to orchestrate complex, multi-step automations. Instead of following rigid workflows, Relay dynamically determines the best sequence of actions based on user requests and current context. It can queue tasks, trigger delayed actions, and run recurring workflows—adapting its approach as needed.
 
-The project showcases advanced orchestration across various services, including:
+Relay’s architecture enables it to:
 
-- **Web Research & Summarization:** Performing web searches, dynamically scraping content with Playwright, and summarizing the findings.
-- **Dynamic Content Creation:** Creating and updating documents in Notion.
-- **Notifications:** Sending alerts and messages through Discord.
+- Select and chain together the most appropriate tools for each situation, making decisions on the fly.
+- Perform on-the-fly computation and automation by executing Python code using its integrated exec tool.
+- Handle dynamic web research, content creation, and notifications, all while maintaining context for multiple users.
 
 Its Redis-centric architecture manages user-bound memory, message queues, and state, enabling context-aware workflows for multiple concurrent users. The web scraping module is designed with resilience to dynamic HTML and bot detection, ensuring reliable data extraction.
 
 ## Key Features
 
-- **LLM-Driven Autonomous Scheduling:** Relay can schedule and execute tasks dynamically. For example, it can set a reminder to research a topic and then create a report at a specified time.
-- **Multi-Step Automation:** Chains together multiple tools to complete complex workflows. A single prompt can trigger a sequence of actions like searching the web, scraping a site, summarizing content, and saving it to Notion.
-- **Resilient Web Scraping:** The scraping module uses Playwright to handle dynamic websites and is designed to be resilient to anti-bot measures.
-- **Redis-Centric Architecture:** Redis is used for:
-  - **User-Bound Memory:** Maintaining context for individual users across sessions.
-  - **Message Queues:** Managing tasks with Celery.
-  - **State Management:** Tracking the state of ongoing workflows.
-- **Extensible Toolset:** The agent's capabilities can be easily extended by adding new tools.
+- **Dynamic Decision-Making:** Relay analyzes each request and decides the optimal workflow, adapting to changing requirements and context.
+- **Integrated Python Execution:** The agent can execute arbitrary Python code for computation, automation, or custom logic, using its built-in exec tool.
+- **LLM-Driven Autonomous Scheduling:** Relay schedules and executes tasks dynamically, choosing the right time and method for each action.
+- **Multi-Step Automation:** Chains together multiple tools to complete complex workflows, with each step chosen based on real-time analysis.
+- **Resilient Web Scraping:** Uses Playwright to handle dynamic websites and anti-bot measures.
+- **Redis-Centric Architecture:** Manages user memory, message queues, and workflow state.
+- **Extensible Toolset:** Easily add new tools and capabilities.
 
 ## System Architecture
 
@@ -53,16 +52,17 @@ Its Redis-centric architecture manages user-bound memory, message queues, and st
 
 ## Example Usage
 
-Here’s an example of a complex, multi-step task you can give Relay:
+Here’s an example of how Relay can dynamically solve a real-world problem:
 
-> **@Relay Tomorrow at 10 AM, find the latest news about generative AI, scrape the top 3 articles, summarize them, and create a new page in my Notion database with the summary.**
 
-This single command will cause Relay to:
 
-1.  Schedule a task for 10 AM the next day.
-2.  At the scheduled time, it will search the web for "latest news about generative AI".
-3.  It will then scrape the content of the top three articles found.
-4.  The scraped content will be summarized.
-5.  Finally, a new page will be created in Notion with the summarized articles.
 
-This demonstrates the power of combining autonomous scheduling with a versatile toolset to create sophisticated automations.
+> **@Relay: Monitor major tech news sites this week and send me a daily digest of the most important stories in Discord. If a breaking story emerges, alert me immediately.**
+
+With this single command, Relay will:
+
+1.  Monitor major technology news sources throughout the week.
+2.  Summarize and send a daily digest of the most important stories to Discord.
+3.  If a breaking story is detected, Relay will send an immediate alert.
+
+Relay flexibly chooses which tools and actions to use, adapting to new information and user needs in real time.

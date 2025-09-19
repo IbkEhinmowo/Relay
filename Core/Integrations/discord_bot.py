@@ -32,7 +32,7 @@ async def on_ready():
     # print(f'ON_READY: {bot.user} has connected to Discord!')
     channel = bot.get_channel(reportChannelID)
     if channel:
-        await channel.send("fbot is now online and connected!")
+        await channel.send("Relay is online")
     else:
         # print(f"Channel with ID {reportChannelID} not found.")
         pass
