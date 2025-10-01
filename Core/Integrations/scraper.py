@@ -1,13 +1,12 @@
 import asyncio
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
-from playwright_stealth import Stealth
+from playwright_stealth import stealth
 
 async def _scrape_single_url(context, url: str):
     """Helper function to scrape a single URL."""
-    stealth = Stealth()
-    await stealth.apply_stealth_async(context)  # Apply stealth to the context
     page = await context.new_page()
+    await stealth(page)  # Apply stealth to the page
     try:
         # Add additional headers to mimic a real browser
         await page.set_extra_http_headers({

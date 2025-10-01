@@ -2,7 +2,7 @@ from Core.Processor.ToolSet import available_functions, tools
 from dotenv import load_dotenv
 import os
 import json
-from cerebras.cloud.sdk import Cerebras
+from openai import AsyncOpenAI
 import redis
 
 # Import Celery app for task registration
@@ -13,9 +13,10 @@ from celery import shared_task
 # Load environment variables
 load_dotenv()
 
-# Initialize Cerebras client
-client = Cerebras(
-  api_key=os.environ.get("CEREBRAS_API_KEY"),
+# Initialize OpenRouter client
+client = AsyncOpenAI(
+  base_url="https://openrouter.ai/api/v1",
+  api_key=os.environ.get("OPENROUTER_API_KEY"),
 )
 
 import asyncio
@@ -29,33 +30,29 @@ async def chat(user_message: str) -> str:
         {
             "role": "system",
             "content": (
-                f"Today is {today}, {now}. "
+                f"Today is {today}, {now}. this is UTC time. ASk FOR TIMEZONE IF NEEDED FOR TIME-RELATED TASKS. "
                 "You are Relay, an autonomous AI Agent with tool access. "
                 "Memory: Only store explicit user info and key facts, in third person. No assumptions. "
-                "Tools: Use the right tool for each request. Explain errors simply. "
-                "Code: Use `execute_python_code` for computation or automation. Format code, errors, and output in Discord-style code blocks. If code is executed, show it in your reply. "
-                "Tasks: Add clear details for cron/timer tasks. Write prompts for yourself to understand later. "
+                "Tools: Use the right tool for each request. Explain errors simply. Only claim to have completed an action if the tool call was successful. If a tool doesn't directly exist for an action look for a way to achieve it with existing tools. i.e rather than editing , you might delete and recreate. "
+                "Code: Use `execute_python_code` for computations and automation. When presenting results, provide a brief, high-level explanation of the method used Then, present the final answer. Format code, errors, and output in markdown code blocks. Do not show the executed code in your reply except when asked"
+                "Tasks: Add clear details for cron/timer tasks. Write prompts for yourself to understand later. When scheduling messages for others, phrase the message content from their perspective (e.g., if asked 'tell Jane she needs to leave', the message for Jane should be 'you need to leave'). "
                 "Communication: Keep replies under 2000 characters. Don't queue Discord replies for Discord inputs. Don't name tools, just say what you did."
+                "IMPORTANT: Do not say you did something if you didn't. If you are not sure you can do something, say you don't know or that you lack the ability. "
             )
         },
         {"role": "user", "content": user_message}
     ]
-    loop = asyncio.get_running_loop()
     while True:
-        await asyncio.sleep(1) 
-        response = await loop.run_in_executor(
-            None,
-            lambda: client.chat.completions.create(
-                model="qwen-3-235b-a22b-thinking-2507",
+        response = await client.chat.completions.create(
+                model="x-ai/grok-4-fast:free",
                 messages=messages,
                 tools=tools,
-                parallel_tool_calls=True
+                tool_choice="auto",
             )
-        )
         choice = response.choices[0].message
         if not choice.tool_calls:
             return choice.content
-        messages.append(choice.model_dump())
+        messages.append(choice)
         for call in choice.tool_calls:
             function_name = call.function.name
             if function_name not in available_functions:
@@ -103,3 +100,8 @@ def llmagent_process_task(message: str):
     """Celery task wrapper for llmagent_process async function."""
     import asyncio
     return asyncio.run(llmagent_process(message))
+
+
+
+
+

@@ -177,24 +177,42 @@ def add_timer_task(name: str, task: str, seconds: int, args: list, one_off: bool
 @app.task
 def list_tasks():
     """
-    List all scheduled RedBeat periodic tasks.
+    List all scheduled RedBeat periodic tasks by querying Redis directly.
     """
-    from redbeat import RedBeatScheduler
-    scheduler = RedBeatScheduler(app=app)
-    entries = scheduler.schedule
+    from redbeat import RedBeatSchedulerEntry
+    
+    # Use the redis client configured for redbeat
+    redis_client = app.redbeat_redis
+    if redis_client is None:
+        print("RedBeat Redis client not configured.")
+        return []
+
+    task_keys = redis_client.keys('redbeat:*')
     task_list = []
-    for name, entry in entries.items():
-        task_list.append({
-            'name': name,
-            'task': entry.task,
-            'schedule': str(entry.schedule),
-            'args': entry.args,
-            'kwargs': entry.kwargs,
-        })
+    for key in task_keys:
+        key_str = key.decode('utf-8')
+        # Filter out redbeat's internal keys
+        if ':' in key_str.split('redbeat:')[1]:
+            continue
+        
+        try:
+            entry = RedBeatSchedulerEntry.from_key(key=key_str, app=app)
+            task_list.append({
+                'name': entry.name,
+                'task': entry.task,
+                'schedule': str(entry.schedule),
+                'args': entry.args,
+                'kwargs': entry.kwargs,
+                'enabled': entry.enabled,
+                'last_run_at': str(entry.last_run_at) if entry.last_run_at else None,
+            })
+        except KeyError:
+            # Handle cases where a key exists but the entry can't be loaded
+            print(f"Could not load task from key: {key_str}")
+            continue
+
     print("Scheduled tasks:", task_list)
     return task_list
-
-
 
 # To run the worker:
 # celery -A Core.Integrations.Schedular worker --loglevel=info
