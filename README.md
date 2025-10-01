@@ -54,9 +54,6 @@ Its Redis-centric architecture manages user-bound memory, message queues, and st
 
 Here’s an example of how Relay can dynamically solve a real-world problem:
 
-
-
-
 > **@Relay: Monitor major tech news sites this week and send me a daily digest of the most important stories in Discord. If a breaking story emerges, alert me immediately.**
 
 With this single command, Relay will:
