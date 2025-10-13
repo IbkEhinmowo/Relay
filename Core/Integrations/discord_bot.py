@@ -83,7 +83,7 @@ async def redis_message_worker():
 @bot.command()
 async def hello(ctx):
     await ctx.trigger_typing()
-    await ctx.send("Hiii! I'm Natasha")
+    await ctx.send("Hiii! I'm Relay")
 
 
 # Ask command: collects a user's question, processes it, and replies
