@@ -1,24 +1,13 @@
 from Core.Integrations.websearch import Web
 import os
-import json
 import requests
-import asyncio
 from typing import Dict, Any
 from dotenv import load_dotenv
-from mcp.server.fastmcp import FastMCP
-from Core.Integrations.Notion import NotionIntegration
 from Core.Integrations.memory import Memory
 from Core.Integrations.scraper import scrape
-from Core.Integrations.Schedular import add_periodic_task, add_cron_task, remove_task, list_tasks, add_timer_task
+from Core.Integrations.Schedular import add_cron_task, remove_task, list_tasks, add_timer_task
 from Core.Integrations.exec_code import exec_code
 
-
-
-# Initialize MCP server
-mcp = FastMCP("Relay-Tools")
-notion = NotionIntegration()
-
-# WEATHER TOOLSET
 
 def get_weather(query: str) -> Dict[str, Any]:
     """Get current weather for a location."""
@@ -89,28 +78,6 @@ tools = [
                     }
                 },
                 "required": ["query"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "create_notion_subpage",
-            "strict": False,
-            "description": "Create a new subpage in Notion with a heading and body",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "heading": {
-                        "type": "string",
-                        "description": "The heading/title for the new subpage"
-                    },
-                    "body": {
-                        "type": "string",
-                        "description": "The content for the new subpage"
-                    }
-                },
-                "required": ["heading", "body"]
             }
         }
     },
@@ -220,24 +187,6 @@ tools = [
     {
         "type": "function",
         "function": {
-            "name": "read_notion_page",
-            "strict": False,
-            "description": "Read a Notion page's properties and content blocks.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "page_id": {
-                        "type": "string",
-                        "description": "The ID of the page to read."
-                    }
-                },
-                "required": ["page_id"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
             "name": "schedule_llm_cron_task",
             "strict": False,
             "description": "Schedules a cron-style task for the LLM agent.",
@@ -321,49 +270,29 @@ tools = [
         }
     }
 ]
-# Register MCP tools
-
-@mcp.tool()
 def memory_changing(user_id: str, index: int, new_content: str) -> str:
     """Change a memory item for a user by index."""
     mem = Memory(user_id)
     mem.changing(index, new_content)
     return f"Changed memory index {index} for user {user_id} to {new_content}."
     # Additional tools can be added here
-    
-# Register MCP tools
-@mcp.tool()
-def get_weather_tool(query: str) -> Dict[str, Any]:
-    """Get current weather for a location"""
-    return get_weather(query)
 
 
 # Memory tools
-@mcp.tool()
 def memory_add(user_id: str, content: str) -> str:
     mem = Memory(user_id)
     mem.add(content)
     return f"Added memory for user {user_id}."
 
-@mcp.tool()
 def memory_list(user_id: str):
     mem = Memory(user_id)
     return mem.list()
 
-@mcp.tool()
 def memory_delete(user_id: str, index: int) -> str:
     mem = Memory(user_id)
     mem.delete(index)
     return f"Deleted memory index {index} for user {user_id}."
 
-def register_tools(mcp_instance) -> None:
-    """Register available tools with a FastMCP instance.
-
-    This keeps MCP specifics out of import-time side effects and allows reuse
-    of the same functions by both LLM function-calling and MCP Server for Testing.
-    """
-
-@mcp.tool()
 def send_discord_message_tool(message: str, from_discord: bool = False) -> str:
     """Send a message to a Discord channel, but ignore if called from Discord context."""
     if from_discord:
@@ -379,69 +308,44 @@ def send_discord_message_tool(message: str, from_discord: bool = False) -> str:
         return f"Failed to enqueue message: {e}"
 
 
-@mcp.tool()
 def web_search_result(query: str):
     """Perform a Brave web search and return the result."""
     return Web().search_result(query)
 
 
-@mcp.tool()
 def web_news_result(query: str):
     """Perform a Brave news search and return the result."""
     return Web().news_result(query)
-    
-@mcp.tool()
+
 async def scrape_url(urls: list[str]) -> list[str]:
     """Scrape a URL and return the text content."""
     return await scrape(urls)
-    
-# Adding Notion integration tools
-@mcp.tool()
-def create_notion_subpage(heading: str, body: str) -> str:
-    """Create a new subpage in Notion with a heading and body."""
-    load_dotenv()
-    # Create a new instance to ensure we have the latest token
-    return notion.create_subpage(heading, body)
-
-@mcp.tool()
-def read_notion_page(page_id: str):
-    """Read a Notion page's properties and content blocks."""
-    return notion.read_page(page_id)
 
 # Scheduling tools
 
 # List scheduled tasks tool
-@mcp.tool()
 def list_scheduled_tasks() -> list:
     """Lists all scheduled tasks."""
     return list_tasks()
 
-@mcp.tool()
 def schedule_llm_cron_task(name: str, arg: str, minute: str = '*', hour: str = '*', day_of_week: str = '*', day_of_month: str = '*', month_of_year: str = '*', one_off: bool = False) -> str:
     """Schedules a cron-style task for the LLM agent with a custom argument and one-off option."""
     task_path = 'Core.Processor.LLMAGENT.llmagent_process'
-    # Add context to the prompt
-    contextual_arg = f"This is a scheduled task. It is now time to do the following: {arg}. Your reply for this task should be sent to Discord, unless the original request stated otherwise."
     add_cron_task.delay(name, task_path, arg, minute, hour, day_of_week, day_of_month, month_of_year, one_off)
     return f"Cron task '{name}' scheduled with prompt: '{arg}', one_off: {one_off}"
 
-@mcp.tool()
 def schedule_llm_timer_task(name: str, arg: str, seconds: int) -> str:
     """Schedules a timer-based task for the LLM agent."""
     task_path = 'Core.Processor.LLMAGENT.llmagent_process'
-    # Add context to the prompt
-    contextual_arg = f"This is a scheduled task. It is now time to do the following: {arg}. Your reply for this task should be sent to Discord, unless the original request stated otherwise."
     # Note the arguments are passed as a list
     add_timer_task.delay(name=name, task=task_path, seconds=seconds, args=[arg])
     return f"Timer task '{name}' scheduled to run in {seconds} seconds with prompt: '{arg}'"
 
-@mcp.tool()
 def remove_scheduled_task(name: str) -> str:
     """Removes a scheduled task by its name."""
     remove_task.delay(name)
     return f"Request to remove task '{name}' sent."
 
-@mcp.tool()
 def execute_python_code(code: str) -> str:
     """Execute Python code and return output or error."""
     return exec_code(code)
@@ -449,7 +353,6 @@ def execute_python_code(code: str) -> str:
 # Dictionary of available functions mapped by name for cerebras
 available_functions = {
     "get_weather": get_weather,
-    "create_notion_subpage": create_notion_subpage,
     "send_discord_message": send_discord_message_tool,
     "memory_add": memory_add,
     "memory_list": memory_list,
@@ -458,7 +361,6 @@ available_functions = {
     "web_search_result": web_search_result,
     "web_news_result": web_news_result,
     "scrape_url": scrape_url,
-    "read_notion_page": read_notion_page,
     "schedule_llm_cron_task": schedule_llm_cron_task,
     "schedule_llm_timer_task": schedule_llm_timer_task,
     "remove_scheduled_task": remove_scheduled_task,

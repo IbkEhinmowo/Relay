@@ -2,7 +2,8 @@ from Core.Processor.ToolSet import available_functions, tools
 from dotenv import load_dotenv
 import os
 import json
-from openai import AsyncOpenAI
+import inspect
+import requests
 import redis
 
 # Import Celery app for task registration
@@ -13,13 +14,38 @@ from celery import shared_task
 # Load environment variables
 load_dotenv()
 
-# Initialize OpenRouter client
-client = AsyncOpenAI(
-  base_url="https://openrouter.ai/api/v1",
-  api_key=os.environ.get("OPENROUTER_API_KEY"),
-)
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "nvidia/nemotron-3-super-120b-a12b:free")
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 import asyncio
+
+
+def _openrouter_chat_completion(messages: list[dict]) -> dict:
+    if not OPENROUTER_API_KEY:
+        raise RuntimeError("Missing OPENROUTER_API_KEY environment variable")
+
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "model": OPENROUTER_MODEL,
+        "messages": messages,
+        "tools": tools,
+        "parallel_tool_calls": True,
+        "reasoning": {"enabled": True},
+    }
+
+    response = requests.post(
+        url=OPENROUTER_URL,
+        headers=headers,
+        data=json.dumps(payload),
+        timeout=90,
+    )
+    response.raise_for_status()
+    return response.json()
 
 async def chat(user_message: str) -> str:
     """Chat with AI that can use tools (async, non-blocking)"""
@@ -30,38 +56,51 @@ async def chat(user_message: str) -> str:
         {
             "role": "system",
             "content": (
-                f"Today is {today}, {now}. this is UTC time. ASk FOR TIMEZONE IF NEEDED FOR TIME-RELATED TASKS. "
+                f"Today is {today}, {now}. "
                 "You are Relay, an autonomous AI Agent with tool access. "
                 "Memory: Only store explicit user info and key facts, in third person. No assumptions. "
-                "Tools: Use the right tool for each request. Explain errors simply. Only claim to have completed an action if the tool call was successful. If a tool doesn't directly exist for an action look for a way to achieve it with existing tools. i.e rather than editing , you might delete and recreate. "
-                "Code: Use `execute_python_code` for computations and automation. When presenting results, provide a brief, high-level explanation of the method used Then, present the final answer. Format code, errors, and output in markdown code blocks. Do not show the executed code in your reply except when asked"
-                "Tasks: Add clear details for cron/timer tasks. Write prompts for yourself to understand later. When scheduling messages for others, phrase the message content from their perspective (e.g., if asked 'tell Jane she needs to leave', the message for Jane should be 'you need to leave'). "
+                "Tools: Use the right tool for each request. Explain errors simply. "
+                "Code: Use `execute_python_code` for computation or automation. Format code, errors, and output in Discord-style code blocks. If code is executed, show it in your reply. "
+                "Tasks: Add clear details for cron/timer tasks. Write prompts for yourself to understand later. "
                 "Communication: Keep replies under 2000 characters. Don't queue Discord replies for Discord inputs. Don't name tools, just say what you did."
-                "IMPORTANT: Do not say you did something if you didn't. If you are not sure you can do something, say you don't know or that you lack the ability. "
             )
         },
         {"role": "user", "content": user_message}
     ]
+    loop = asyncio.get_running_loop()
     while True:
-        response = await client.chat.completions.create(
-                model="x-ai/grok-4-fast:free",
-                messages=messages,
-                tools=tools,
-                tool_choice="auto",
-            )
-        choice = response.choices[0].message
-        if not choice.tool_calls:
-            return choice.content
-        messages.append(choice)
-        for call in choice.tool_calls:
-            function_name = call.function.name
+        response = await loop.run_in_executor(
+            None,
+            lambda: _openrouter_chat_completion(messages)
+        )
+        choice = response["choices"][0]["message"]
+        tool_calls = choice.get("tool_calls") or []
+
+        if not tool_calls:
+            return choice.get("content", "")
+
+        assistant_message = {
+            "role": "assistant",
+            "content": choice.get("content"),
+            "tool_calls": tool_calls,
+        }
+        if "reasoning_details" in choice:
+            assistant_message["reasoning_details"] = choice.get("reasoning_details")
+        messages.append(assistant_message)
+
+        for call in tool_calls:
+            function_name = call.get("function", {}).get("name")
             if function_name not in available_functions:
                 return f"Unknown tool requested: {function_name}"
             
             function_to_call = available_functions[function_name]
-            arguments = json.loads(call.function.arguments)
+            raw_arguments = call.get("function", {}).get("arguments") or "{}"
+            try:
+                arguments = json.loads(raw_arguments)
+            except json.JSONDecodeError:
+                arguments = {}
             
-            if asyncio.iscoroutinefunction(function_to_call):
+            if inspect.iscoroutinefunction(function_to_call):
                 result = await function_to_call(**arguments)
             else:
                 result = function_to_call(**arguments)
@@ -79,11 +118,16 @@ async def chat(user_message: str) -> str:
                     r.expire("tool_responses_log", 1200)
             except Exception as e:
                 print(f"Failed to log tool response to Redis: {e}")
+
+            try:
+                result_content = json.dumps(result)
+            except TypeError:
+                result_content = json.dumps(str(result))
             
             messages.append({
                 "role": "tool",
-                "tool_call_id": call.id,
-                "content": json.dumps(result),
+                "tool_call_id": call.get("id"),
+                "content": result_content,
             })
             
 
@@ -100,8 +144,3 @@ def llmagent_process_task(message: str):
     """Celery task wrapper for llmagent_process async function."""
     import asyncio
     return asyncio.run(llmagent_process(message))
-
-
-
-
-

@@ -4,7 +4,7 @@ from datetime import datetime
 
 class Event(BaseModel):
     # Common fields for all sources
-    source: str               # "discord", "marketplace", "email"
+    source: str               # "discord", "email"
     type: Optional[str] = None # "message", "task", "listing"
     content: str              # Main text/content of the event
     timestamp: Optional[str] = None
@@ -26,14 +26,6 @@ class Event(BaseModel):
 #     metadata={"channel": "alerts"}
 # )
 
-# # Marketplace listing
-# marketplace_event = Event(
-#     source="marketplace",
-#     type="listing",
-#     content="RTX 4090 for sale",
-#     timestamp=datetime.utcnow(),
-#     metadata={"price": "700", "url": "https://example.com/listing", "category": "GPU"}
-# )
 
 # # Email
 # email_event = Event(
