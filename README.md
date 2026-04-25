@@ -40,40 +40,7 @@ This project showcases a modern, decoupled software architecture:
 - **State & History Management:** Employs Redis for robust conversation history and state management, enabling context-aware interactions.
 - **Modular Toolset:** Tools are designed as independent, extensible modules, allowing for easy addition of new capabilities.
 
-## Getting Started
 
-### Prerequisites
-
-- Python 3.10+
-- Redis
-
-- Cerebras API Key (and other keys for integrated services)
-
-### Installation
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/IbkEhinmowo/Relay.git
-    cd Relay
-    ```
-2.  **Set up a virtual environment and install dependencies:**
-    ```bash
-    python -m venv .venv
-    source .venv/bin/activate
-    pip install -r requirements.txt
-    ```
-3.  **Configure environment variables:**
-    Create a `.env` file and add your API keys:
-    ```env
-    CEREBRAS_API_KEY="YOUR_CEREBRAS_KEY"
-    BOT_TOKEN="YOUR_DISCORD_BOT_TOKEN"
-    WEATHERSTACK_API_KEY="YOUR_WEATHERSTACK_KEY"
-    # ... other keys
-    ```
-4.  **Run the agent:**
-    ```bash
-    bash run_bot.sh
-    ```
 
 ## Example "Show-Off" Demo
 
